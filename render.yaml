@@ -1,5 +1,9 @@
 # Ferremat Backend — Render Blueprint
 # Despliega la API + panel admin en Render (Web Service).
+#
+# Configuración: ve al Web Service en Render → Environment → pega las
+# variables de entorno de la lista que te di (o completa los valores
+# de sync: false de este archivo).
 services:
   - type: web
     name: ferremat-backend
@@ -15,8 +19,10 @@ services:
         value: production
       - key: SERVE_FRONTEND
         value: "false"
+      - key: PORT
+        value: "4000"
       - key: ADMIN_USUARIO
-        sync: false
+        value: "ferrematadmin"
       - key: ADMIN_PASSWORD
         sync: false
       - key: DATABASE_URL
@@ -30,11 +36,11 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRES_IN
-        sync: false
+        value: "8h"
       - key: SESSION_SECRET
         sync: false
       - key: MAX_UPLOAD_SIZE
-        sync: false
+        value: "5242880"
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_KEY
