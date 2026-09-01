@@ -116,6 +116,7 @@ function buildUploader(carpeta) {
   // en el storage engine fácilmente, interceptamos tras la subida a memoria.
   const _single = multerInstance.single.bind(multerInstance);
   const _array = multerInstance.array.bind(multerInstance);
+  const _fields = multerInstance.fields.bind(multerInstance);
 
   const subirBufferASupabase = async function (file) {
     if (!client || !file || !file.buffer) return file;
@@ -145,7 +146,27 @@ function buildUploader(carpeta) {
   if (!client) {
     return {
       single: _single,
-      array: _array
+      array: _array,
+      fields: function (fieldsConfig) {
+        const mid = _fields(fieldsConfig);
+        return function (req, res, next) {
+          mid(req, res, function (err) {
+            if (err) return next(err);
+            // Normaliza para que productController siga funcionando:
+            // req.file = archivo de "imagen", req.files = array de "imagenes"
+            try {
+              if (req.files && typeof req.files === 'object' && !Array.isArray(req.files)) {
+                const obj = req.files;
+                req.file = (obj.imagen && obj.imagen[0]) || undefined;
+                req.files = obj.imagenes || [];
+                // Guarda el objeto original por si se necesita
+                req.filesByField = obj;
+              }
+            } catch (_) {}
+            next();
+          });
+        };
+      }
     };
   }
 
@@ -174,6 +195,34 @@ function buildUploader(carpeta) {
               req.files = await Promise.all(req.files.map(function (f) {
                 return subirBufferASupabase(f);
               }));
+            }
+            next();
+          } catch (e) {
+            next(e);
+          }
+        });
+      };
+    },
+    fields: function (fieldsConfig) {
+      const mid = _fields(fieldsConfig);
+      return function (req, res, next) {
+        mid(req, res, async function (err) {
+          if (err) return next(err);
+          try {
+            if (req.files && typeof req.files === 'object' && !Array.isArray(req.files)) {
+              const obj = req.files;
+              // Sube cada archivo a Supabase en paralelo por campo
+              const fieldsToUpload = Object.keys(obj);
+              await Promise.all(fieldsToUpload.map(async function (field) {
+                const files = obj[field];
+                if (files && files.length) {
+                  obj[field] = await Promise.all(files.map(function (f) { return subirBufferASupabase(f); }));
+                }
+              }));
+              // Normaliza para productController (espera req.file y req.files array)
+              req.file = (obj.imagen && obj.imagen[0]) || undefined;
+              req.files = obj.imagenes || [];
+              req.filesByField = obj;
             }
             next();
           } catch (e) {

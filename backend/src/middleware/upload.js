@@ -10,6 +10,13 @@ const { buildUploader, UPLOADS_ROOT } = require('../utils/storage');
 const uploadProducto = buildUploader('productos');
 const uploadCategoria = buildUploader('categorias');
 const uploadProductoGaleria = buildUploader('productos');
+// Handler combinado para crear/editar producto: acepta "imagen" (1) + "imagenes" (10) en la misma petición.
+// Antes se encadenaban dos middlewares single/array secuenciales y multer rechazaba el segundo campo como "Unexpected field".
+const _uploaderProductosFields = buildUploader('productos');
+const uploadProductoCompleto = _uploaderProductosFields.fields([
+  { name: 'imagen', maxCount: 1 },
+  { name: 'imagenes', maxCount: 10 }
+]);
 
 /**
  * Envuelve un middleware de multer para convertir sus errores en un
@@ -30,5 +37,6 @@ module.exports = {
   uploadProducto: handleUpload(uploadProducto.single('imagen')),
   uploadCategoria: handleUpload(uploadCategoria.single('imagen')),
   uploadProductoGaleria: handleUpload(uploadProductoGaleria.array('imagenes', 10)),
+  uploadProductoCompleto: handleUpload(uploadProductoCompleto),
   UPLOADS_ROOT
 };
