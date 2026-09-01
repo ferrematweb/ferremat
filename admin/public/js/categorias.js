@@ -81,6 +81,17 @@
     formError.hidden = true;
 
     var id = document.getElementById('cId').value;
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var originalBtnText = submitBtn ? submitBtn.textContent : '';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+      submitBtn.style.opacity = '0.6';
+      submitBtn.style.cursor = 'wait';
+    }
+    var btnCancelar = document.getElementById('btnCancelarCategoria');
+    if (btnCancelar) btnCancelar.disabled = true;
+
     var formData = new FormData(form);
 
     ['destacada', 'eliminarImagen'].forEach(function (campo) {
@@ -91,13 +102,25 @@
     var url = id ? '/api/categorias/' + id : '/api/categorias';
     var method = id ? 'PUT' : 'POST';
 
+    function restaurarBoton() {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText || 'Guardar';
+        submitBtn.style.opacity = '';
+        submitBtn.style.cursor = '';
+      }
+      if (btnCancelar) btnCancelar.disabled = false;
+    }
+
     apiFetch(url, { method: method, body: formData })
       .then(function () {
+        restaurarBoton();
         cerrarDrawer();
         showToast(id ? 'Categoría actualizada.' : 'Categoría creada.', 'ok');
         return cargarCategorias();
       })
       .catch(function (err) {
+        restaurarBoton();
         formError.textContent = err.message;
         formError.hidden = false;
       });

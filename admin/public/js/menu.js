@@ -69,6 +69,17 @@
     formError.hidden = true;
 
     var id = document.getElementById('mId').value;
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var originalBtnText = submitBtn ? submitBtn.textContent : '';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+      submitBtn.style.opacity = '0.6';
+      submitBtn.style.cursor = 'wait';
+    }
+    var btnCancelar = document.getElementById('btnCancelarItem');
+    if (btnCancelar) btnCancelar.disabled = true;
+
     var payload = {
       nombre: document.getElementById('mNombre').value,
       enlace: document.getElementById('mEnlace').value,
@@ -79,17 +90,29 @@
     var url = id ? '/api/menu/' + id : '/api/menu';
     var method = id ? 'PUT' : 'POST';
 
+    function restaurarBoton() {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText || 'Guardar';
+        submitBtn.style.opacity = '';
+        submitBtn.style.cursor = '';
+      }
+      if (btnCancelar) btnCancelar.disabled = false;
+    }
+
     apiFetch(url, {
       method: method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
       .then(function () {
+        restaurarBoton();
         cerrarDrawer();
         showToast(id ? 'Ítem actualizado.' : 'Ítem creado.', 'ok');
         return cargarItems();
       })
       .catch(function (err) {
+        restaurarBoton();
         formError.textContent = err.message;
         formError.hidden = false;
       });

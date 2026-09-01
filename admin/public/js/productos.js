@@ -176,6 +176,19 @@
     formError.hidden = true;
 
     var id = document.getElementById('fId').value;
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var originalBtnText = submitBtn ? submitBtn.textContent : '';
+
+    // Feedback visual: deshabilita botón y muestra "Guardando..."
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+      submitBtn.style.opacity = '0.6';
+      submitBtn.style.cursor = 'wait';
+    }
+    var btnCancelar = document.getElementById('btnCancelarProducto');
+    if (btnCancelar) btnCancelar.disabled = true;
+
     var formData = new FormData(form);
 
     // Los checkboxes no marcados no se envían por FormData; forzamos su valor "false".
@@ -187,13 +200,25 @@
     var url = id ? '/api/productos/' + id : '/api/productos';
     var method = id ? 'PUT' : 'POST';
 
+    function restaurarBoton() {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText || 'Guardar';
+        submitBtn.style.opacity = '';
+        submitBtn.style.cursor = '';
+      }
+      if (btnCancelar) btnCancelar.disabled = false;
+    }
+
     apiFetch(url, { method: method, body: formData })
       .then(function () {
+        restaurarBoton();
         cerrarDrawer();
         showToast(id ? 'Producto actualizado.' : 'Producto creado.', 'ok');
         return cargarProductos();
       })
       .catch(function (err) {
+        restaurarBoton();
         formError.textContent = err.message;
         formError.hidden = false;
       });
