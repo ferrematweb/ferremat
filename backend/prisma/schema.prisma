@@ -1,0 +1,120 @@
+// ============================================================
+// FERREMAT — Esquema de base de datos (PostgreSQL + Prisma)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ------------------------------------------------------------
+// Administrador del panel (rol único: admin)
+// ------------------------------------------------------------
+model Admin {
+  id           Int      @id @default(autoincrement())
+  usuario      String   @unique
+  passwordHash String
+  nombre       String?
+  creadoEn     DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@map("admins")
+}
+
+// ------------------------------------------------------------
+// Categorías del catálogo
+// ------------------------------------------------------------
+model Categoria {
+  id        Int        @id @default(autoincrement())
+  // slug usado como identificador estable en el frontend (ej: "herramientas-electricas")
+  slug      String     @unique
+  nombre    String
+  // orden de aparición en la sección de categorías (menor = primero)
+  orden     Int        @default(0)
+  // URL de la imagen representativa (subida local o externa)
+  imagen    String?
+  // marca la categoría destacada, ej. etiqueta "Más vendido" en la card grande
+  destacada Boolean    @default(false)
+  productos Producto[]
+  creadoEn     DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@map("categorias")
+}
+
+// ------------------------------------------------------------
+// Productos del catálogo
+// ------------------------------------------------------------
+model Producto {
+  id                Int       @id @default(autoincrement())
+  nombre            String
+  descripcion       String?
+  sku               String?
+  marca             String?
+
+  categoriaId       Int
+  categoria         Categoria @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+
+  // Precio opcional: si es null, el frontend muestra "Consultar precio"
+  precio            Float?
+  precioAnterior    Float?
+  precioMayorista   Float?
+  cantidadMayorista Int?
+
+  imagen            String?
+
+  // Fotos adicionales (galería). La primera normalmente coincide con
+  // "imagen" (cubierta). El frontend las usa para el efecto hover que
+  // cambia de foto al pasar el cursor.
+  imagenes          ImagenProducto[]
+
+  disponible        Boolean   @default(true)
+  destacado         Boolean   @default(false)
+  // aparece en la sección "Nuevos ingresos" del inicio
+  nuevo             Boolean   @default(false)
+
+  creadoEn     DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@index([categoriaId])
+  @@index([nuevo])
+  @@index([destacado])
+  @@map("productos")
+}
+
+// ------------------------------------------------------------
+// Galería de imágenes por producto (varias fotos -> hover en el frontend)
+// ------------------------------------------------------------
+model ImagenProducto {
+  id         Int      @id @default(autoincrement())
+  productoId Int
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  url        String
+  orden      Int      @default(0)
+  creadoEn   DateTime @default(now())
+
+  @@index([productoId])
+  @@map("imagenes_producto")
+}
+
+// ------------------------------------------------------------
+// Ítems del menú de navegación (header y menú móvil)
+// ------------------------------------------------------------
+model ItemMenu {
+  id      Int     @id @default(autoincrement())
+  nombre  String
+  // enlace/ancla, ej: "#inicio", "#productos" o una URL completa
+  enlace  String
+  orden   Int     @default(0)
+  visible Boolean @default(true)
+
+  creadoEn     DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@map("items_menu")
+}

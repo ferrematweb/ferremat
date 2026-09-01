@@ -1,0 +1,131 @@
+<%- include('partials/header') %>
+
+<div class="toolbar">
+  <div class="toolbar__filters">
+    <input type="search" id="filtroTexto" placeholder="Buscar por nombre, SKU...">
+    <select id="filtroCategoria">
+      <option value="">Todas las categorías</option>
+    </select>
+  </div>
+  <button type="button" class="btn btn--primary" id="btnNuevoProducto">+ Nuevo producto</button>
+</div>
+
+<div class="panel">
+  <table class="table" id="tablaProductos">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Precio</th>
+        <th>Estado</th>
+        <th>Etiquetas</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tbodyProductos">
+      <tr><td colspan="7" class="table__empty">Cargando productos…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Panel lateral (drawer) de creación/edición -->
+<div class="drawer" id="drawerProducto" hidden>
+  <div class="drawer__backdrop" id="drawerBackdrop"></div>
+  <div class="drawer__panel">
+    <div class="drawer__head">
+      <h2 id="drawerTitulo">Nuevo producto</h2>
+      <button type="button" class="drawer__close" id="btnCerrarDrawer">×</button>
+    </div>
+    <form id="formProducto" enctype="multipart/form-data">
+      <input type="hidden" name="id" id="fId">
+
+      <label>Nombre *
+        <input type="text" name="nombre" id="fNombre" required>
+      </label>
+
+      <label>Descripción
+        <textarea name="descripcion" id="fDescripcion" rows="3"></textarea>
+      </label>
+
+      <div class="form-row">
+        <label>Categoría *
+          <select name="categoriaId" id="fCategoriaId" required></select>
+        </label>
+        <label>SKU
+          <input type="text" name="sku" id="fSku">
+        </label>
+      </div>
+
+      <div class="form-row">
+        <label>Marca
+          <input type="text" name="marca" id="fMarca">
+        </label>
+      </div>
+
+      <fieldset>
+        <legend>Precio (opcional — si lo dejas vacío, se muestra "Consultar precio")</legend>
+        <div class="form-row">
+          <label>Precio
+            <input type="number" step="0.01" min="0" name="precio" id="fPrecio">
+          </label>
+          <label>Precio anterior (para mostrar descuento)
+            <input type="number" step="0.01" min="0" name="precioAnterior" id="fPrecioAnterior">
+          </label>
+        </div>
+        <div class="form-row">
+          <label>Precio mayorista
+            <input type="number" step="0.01" min="0" name="precioMayorista" id="fPrecioMayorista">
+          </label>
+          <label>Cantidad mínima mayorista
+            <input type="number" step="1" min="1" name="cantidadMayorista" id="fCantidadMayorista">
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Imagen principal (portada)</legend>
+        <label>Subir archivo (JPG, PNG, WEBP o GIF)
+          <input type="file" name="imagen" id="fImagenArchivo" accept="image/*">
+        </label>
+        <label>...o pega la URL de una imagen
+          <input type="url" name="imagenUrl" id="fImagenUrl" placeholder="https://...">
+        </label>
+        <div id="previewImagen" class="preview-imagen"></div>
+        <label class="checkbox">
+          <input type="checkbox" name="eliminarImagen" id="fEliminarImagen" value="true">
+          Quitar imagen actual
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Galería de fotos (opcional)</legend>
+        <p class="form-hint">Sube varias fotos del producto. En la web, al pasar el cursor se irán mostrando. La primera se usa como portada.</p>
+        <input type="file" name="imagenes" id="fImagenesArchivo" accept="image/*" multiple>
+        <div class="galeria-url">
+          <input type="url" id="fGaleriaUrl" placeholder="https://... pegar URL de una foto">
+          <button type="button" class="btn btn--small" id="btnAgregarGaleria">Añadir URL</button>
+        </div>
+        <input type="hidden" name="imagenesUrl" id="fImagenesUrl">
+        <div id="previewGaleria" class="preview-galeria"></div>
+      </fieldset>
+
+      <div class="form-row form-row--checks">
+        <label class="checkbox"><input type="checkbox" name="disponible" id="fDisponible" value="true" checked> Disponible</label>
+        <label class="checkbox"><input type="checkbox" name="destacado" id="fDestacado" value="true"> Destacado</label>
+        <label class="checkbox"><input type="checkbox" name="nuevo" id="fNuevo" value="true"> Nuevo ingreso</label>
+      </div>
+
+      <p id="formProductoError" class="form-error" hidden></p>
+
+      <div class="drawer__actions">
+        <button type="button" class="btn" id="btnCancelarProducto">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/admin/assets/js/productos.js"></script>
+
+<%- include('partials/footer') %>

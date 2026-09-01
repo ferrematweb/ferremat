@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> · Ferremat Admin</title>
+  <link rel="stylesheet" href="/admin/assets/css/admin.css">
+  <script src="/admin/assets/js/common.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar__brand">FERREMAT <span>Admin</span></div>
+      <nav class="sidebar__nav">
+        <a href="/admin" class="<%= activo === 'inicio' ? 'is-active' : '' %>">Inicio</a>
+        <a href="/admin/productos" class="<%= activo === 'productos' ? 'is-active' : '' %>">Productos</a>
+        <a href="/admin/categorias" class="<%= activo === 'categorias' ? 'is-active' : '' %>">Categorías</a>
+        <a href="/admin/menu" class="<%= activo === 'menu' ? 'is-active' : '' %>">Menú de navegación</a>
+      </nav>
+      <form action="/admin/logout" method="POST" class="sidebar__logout">
+        <button type="submit">Cerrar sesión</button>
+      </form>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <h1><%= titulo %></h1>
+      </header>
+      <main class="content">

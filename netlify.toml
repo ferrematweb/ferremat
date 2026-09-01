@@ -1,0 +1,8 @@
+# Ferremat — Netlify
+# Publica el frontend estático de Netlify (sitio separado de la API).
+[build]
+  publish = "frontend"
+
+# Redirects: el frontend usa rutas limpias; la API vive en Render, no aquí.
+# No se definen headers ni redirects de API porque el backend se sirve desde
+# el Web Service de Render (configurado en render.yaml).

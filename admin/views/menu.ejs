@@ -1,0 +1,70 @@
+<%- include('partials/header') %>
+
+<div class="toolbar">
+  <div></div>
+  <button type="button" class="btn btn--primary" id="btnNuevoItem">+ Nuevo ítem</button>
+</div>
+
+<div class="panel">
+  <table class="table" id="tablaMenu">
+    <thead>
+      <tr>
+        <th>Orden</th>
+        <th>Nombre</th>
+        <th>Enlace</th>
+        <th>Visible</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tbodyMenu">
+      <tr><td colspan="5" class="table__empty">Cargando menú…</td></tr>
+    </tbody>
+  </table>
+  <p class="hint">
+    El "enlace" puede ser un ancla de la misma página (ej. <code>#productos</code>)
+    o una URL completa (ej. <code>https://wa.me/51987654321</code>).
+    Los ítems marcados como "no visibles" no aparecen en el sitio público,
+    pero quedan guardados para reactivarlos cuando quieras.
+  </p>
+</div>
+
+<div class="drawer" id="drawerItem" hidden>
+  <div class="drawer__backdrop" id="drawerBackdropItem"></div>
+  <div class="drawer__panel">
+    <div class="drawer__head">
+      <h2 id="drawerTituloItem">Nuevo ítem de menú</h2>
+      <button type="button" class="drawer__close" id="btnCerrarDrawerItem">×</button>
+    </div>
+    <form id="formItem">
+      <input type="hidden" name="id" id="mId">
+
+      <label>Nombre *
+        <input type="text" name="nombre" id="mNombre" required>
+      </label>
+
+      <label>Enlace *
+        <input type="text" name="enlace" id="mEnlace" placeholder="#productos" required>
+      </label>
+
+      <label>Orden
+        <input type="number" name="orden" id="mOrden" value="0">
+      </label>
+
+      <label class="checkbox">
+        <input type="checkbox" name="visible" id="mVisible" value="true" checked>
+        Visible en el sitio público
+      </label>
+
+      <p id="formItemError" class="form-error" hidden></p>
+
+      <div class="drawer__actions">
+        <button type="button" class="btn" id="btnCancelarItem">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/admin/assets/js/menu.js"></script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,82 @@
+<%- include('partials/header') %>
+
+<div class="toolbar">
+  <div></div>
+  <button type="button" class="btn btn--primary" id="btnNuevaCategoria">+ Nueva categoría</button>
+</div>
+
+<div class="panel">
+  <table class="table" id="tablaCategorias">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Nombre</th>
+        <th>Slug</th>
+        <th>Orden</th>
+        <th>Productos</th>
+        <th>Destacada</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tbodyCategorias">
+      <tr><td colspan="7" class="table__empty">Cargando categorías…</td></tr>
+    </tbody>
+  </table>
+  <p class="hint">El "orden" define en qué posición aparece la categoría en la web (menor número = aparece primero). No se puede eliminar una categoría que todavía tiene productos.</p>
+</div>
+
+<div class="drawer" id="drawerCategoria" hidden>
+  <div class="drawer__backdrop" id="drawerBackdropCat"></div>
+  <div class="drawer__panel">
+    <div class="drawer__head">
+      <h2 id="drawerTituloCat">Nueva categoría</h2>
+      <button type="button" class="drawer__close" id="btnCerrarDrawerCat">×</button>
+    </div>
+    <form id="formCategoria" enctype="multipart/form-data">
+      <input type="hidden" name="id" id="cId">
+
+      <label>Nombre *
+        <input type="text" name="nombre" id="cNombre" required>
+      </label>
+
+      <label>Slug (identificador interno, se genera solo si lo dejas vacío)
+        <input type="text" name="slug" id="cSlug" placeholder="ej: herramientas-electricas">
+      </label>
+
+      <label>Orden de aparición
+        <input type="number" name="orden" id="cOrden" value="0">
+      </label>
+
+      <fieldset>
+        <legend>Imagen representativa</legend>
+        <label>Subir archivo
+          <input type="file" name="imagen" id="cImagenArchivo" accept="image/*">
+        </label>
+        <label>...o pega la URL de una imagen
+          <input type="url" name="imagenUrl" id="cImagenUrl" placeholder="https://...">
+        </label>
+        <div id="previewImagenCat" class="preview-imagen"></div>
+        <label class="checkbox">
+          <input type="checkbox" name="eliminarImagen" id="cEliminarImagen" value="true">
+          Quitar imagen actual
+        </label>
+      </fieldset>
+
+      <label class="checkbox">
+        <input type="checkbox" name="destacada" id="cDestacada" value="true">
+        Categoría destacada (etiqueta "Más vendido" en la portada)
+      </label>
+
+      <p id="formCategoriaError" class="form-error" hidden></p>
+
+      <div class="drawer__actions">
+        <button type="button" class="btn" id="btnCancelarCategoria">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/admin/assets/js/categorias.js"></script>
+
+<%- include('partials/footer') %>

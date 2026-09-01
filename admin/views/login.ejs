@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> · Ferremat Admin</title>
+  <link rel="stylesheet" href="/admin/assets/css/admin.css">
+</head>
+<body class="login-body">
+  <div class="login-card">
+    <div class="login-card__brand">FERREMAT <span>Admin</span></div>
+    <p class="login-card__subtitle">Panel de administración del sitio</p>
+
+    <form id="loginForm">
+      <label>
+        Usuario
+        <input type="text" name="usuario" autocomplete="username" required autofocus>
+      </label>
+      <label>
+        Contraseña
+        <input type="password" name="password" autocomplete="current-password" required>
+      </label>
+      <p id="loginError" class="form-error" hidden></p>
+      <button type="submit" class="btn btn--primary">Ingresar</button>
+    </form>
+  </div>
+
+  <script>
+    var form = document.getElementById('loginForm');
+    var errorEl = document.getElementById('loginError');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      errorEl.hidden = true;
+
+      var data = new FormData(form);
+      var body = {
+        usuario: data.get('usuario'),
+        password: data.get('password')
+      };
+
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body)
+      })
+        .then(function (res) {
+          if (!res.ok) return res.json().then(function (d) { throw new Error(d.error || 'Error al iniciar sesión.'); });
+          return res.json();
+        })
+        .then(function () {
+          window.location.href = '/admin';
+        })
+        .catch(function (err) {
+          errorEl.textContent = err.message;
+          errorEl.hidden = false;
+        });
+    });
+  </script>
+</body>
+</html>

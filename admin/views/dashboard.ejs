@@ -1,0 +1,43 @@
+<%- include('partials/header') %>
+
+<div class="cards-grid">
+  <div class="stat-card">
+    <div class="stat-card__label">Productos</div>
+    <div class="stat-card__value" id="statProductos">—</div>
+    <a href="/admin/productos">Gestionar productos →</a>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__label">Categorías</div>
+    <div class="stat-card__value" id="statCategorias">—</div>
+    <a href="/admin/categorias">Gestionar categorías →</a>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__label">Ítems de menú</div>
+    <div class="stat-card__value" id="statMenu">—</div>
+    <a href="/admin/menu">Gestionar menú →</a>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Bienvenido al panel de Ferremat</h2>
+  <p>
+    Desde aquí puedes administrar los productos, categorías y el menú de
+    navegación del sitio público, sin tocar código. Los cambios que hagas
+    aquí se reflejan automáticamente en la web en cuanto la recarga un
+    visitante.
+  </p>
+</div>
+
+<script>
+  Promise.all([
+    fetch('/api/productos', { credentials: 'include' }).then(function (r) { return r.json(); }),
+    fetch('/api/categorias', { credentials: 'include' }).then(function (r) { return r.json(); }),
+    fetch('/api/menu?todos=true', { credentials: 'include' }).then(function (r) { return r.json(); })
+  ]).then(function (res) {
+    document.getElementById('statProductos').textContent = res[0].length;
+    document.getElementById('statCategorias').textContent = res[1].length;
+    document.getElementById('statMenu').textContent = res[2].length;
+  });
+</script>
+
+<%- include('partials/footer') %>

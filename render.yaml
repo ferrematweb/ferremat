@@ -1,0 +1,41 @@
+# Ferremat Backend — Render Blueprint
+# Despliega la API + panel admin en Render (Web Service).
+services:
+  - type: web
+    name: ferremat-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    healthCheckPath: /api/health
+    buildCommand: npm install && npx prisma generate
+    startCommand: npx prisma migrate deploy && npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_FRONTEND
+        value: "false"
+      - key: ADMIN_USUARIO
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: MAX_UPLOAD_SIZE
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
