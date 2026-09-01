@@ -28,11 +28,7 @@
   //   var API_BASE_URL = 'http://localhost:4000';
   //
   // PRODUCCIÓN (backend en Render, frontend en Netlify):
-  // Descomenta y usa la URL real del Web Service de Render, ej:
-  //   var API_BASE_URL = 'https://ferremat-backend.onrender.com';
-  // (el backend también debe responder CORS con el dominio de Netlify,
-  //  que se configura en la variable CORS_ORIGIN del backend).
-  var API_BASE_URL = '';
+  var API_BASE_URL = 'https://ferremat-backend.onrender.com';
 
   // ------------------------------------------------------------
   // DATOS GENERALES DE LA TIENDA (placeholders — reemplazar)
