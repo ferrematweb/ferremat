@@ -44,6 +44,7 @@ model Categoria {
   creadoEn     DateTime @default(now())
   actualizadoEn DateTime @updatedAt
 
+  @@index([orden])
   @@map("categorias")
 }
 
@@ -82,8 +83,13 @@ model Producto {
   actualizadoEn DateTime @updatedAt
 
   @@index([categoriaId])
+  @@index([disponible])
   @@index([nuevo])
   @@index([destacado])
+  @@index([creadoEn])
+  @@index([sku])
+  @@index([categoriaId, disponible])
+  @@index([categoriaId, destacado])
   @@map("productos")
 }
 

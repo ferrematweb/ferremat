@@ -2,6 +2,7 @@ const prisma = require('../config/db');
 const { resolveImageUrl } = require('../utils/urls');
 const { slugify } = require('../utils/slugify');
 const { imagePath, borrarImagen } = require('../utils/storage');
+const cache = require('../utils/cache');
 
 function serialize(categoria) {
   return {
@@ -20,11 +21,22 @@ function serialize(categoria) {
  * Pública. Devuelve todas las categorías ordenadas por "orden".
  */
 async function listar(req, res) {
+  const cacheKey = `categorias:${req.originalUrl}`;
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    res.set('X-Cache', 'HIT');
+    res.set('Cache-Control', 'public, max-age=60');
+    return res.json(cached);
+  }
   const categorias = await prisma.categoria.findMany({
     orderBy: { orden: 'asc' },
     include: { _count: { select: { productos: true } } }
   });
-  return res.json(categorias.map(serialize));
+  const payload = categorias.map(serialize);
+  cache.set(cacheKey, payload, 120 * 1000);
+  res.set('X-Cache', 'MISS');
+  res.set('Cache-Control', 'public, max-age=60');
+  return res.json(payload);
 }
 
 /**
@@ -81,6 +93,8 @@ async function crear(req, res) {
     }
   });
 
+  cache.delByPrefix('categorias');
+  cache.delByPrefix('productos');
   return res.status(201).json(serialize(categoria));
 }
 
@@ -126,6 +140,8 @@ async function actualizar(req, res) {
 
   if (imagenAnterior) await borrarImagen(imagenAnterior);
 
+  cache.delByPrefix('categorias');
+  cache.delByPrefix('productos');
   return res.json(serialize(categoria));
 }
 
@@ -154,6 +170,8 @@ async function eliminar(req, res) {
   await prisma.categoria.delete({ where: { id } });
   if (categoria.imagen) await borrarImagen(categoria.imagen);
 
+  cache.delByPrefix('categorias');
+  cache.delByPrefix('productos');
   return res.json({ ok: true });
 }
 

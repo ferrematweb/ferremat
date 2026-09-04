@@ -13,6 +13,19 @@
   var tbody = document.getElementById('tbodyProductos');
   var filtroTexto = document.getElementById('filtroTexto');
   var filtroCategoria = document.getElementById('filtroCategoria');
+  // Paginación para 500+ productos: evita cargar todo de golpe
+  var paginaActual = 1;
+  var porPagina = 20;
+  var totalPaginas = 1;
+  var paginacionEl = document.getElementById('paginacionProductos');
+  if (!paginacionEl) {
+    paginacionEl = document.createElement('div');
+    paginacionEl.id = 'paginacionProductos';
+    paginacionEl.className = 'pagination';
+    paginacionEl.style.cssText = 'display:flex;gap:8px;justify-content:center;align-items:center;margin:16px 0;';
+    var panel = document.querySelector('.panel');
+    if (panel && panel.parentNode) panel.parentNode.insertBefore(paginacionEl, panel.nextSibling);
+  }
 
   var drawer = document.getElementById('drawerProducto');
   var form = document.getElementById('formProducto');
@@ -37,15 +50,47 @@
     });
   }
 
+  function renderPaginacion() {
+    if (totalPaginas <= 1) { paginacionEl.innerHTML = ''; return; }
+    var html = '';
+    html += '<button type="button" class="btn btn--small" id="btnPrevPagina" ' + (paginaActual <= 1 ? 'disabled' : '') + '>‹ Anterior</button>';
+    html += '<span style="font-size:13px;color:#475569;">Página ' + paginaActual + ' de ' + totalPaginas + '</span>';
+    html += '<button type="button" class="btn btn--small" id="btnNextPagina" ' + (paginaActual >= totalPaginas ? 'disabled' : '') + '>Siguiente ›</button>';
+    paginacionEl.innerHTML = html;
+    var btnPrev = document.getElementById('btnPrevPagina');
+    var btnNext = document.getElementById('btnNextPagina');
+    if (btnPrev) btnPrev.addEventListener('click', function () { if (paginaActual > 1) { paginaActual--; cargarProductos(); }});
+    if (btnNext) btnNext.addEventListener('click', function () { if (paginaActual < totalPaginas) { paginaActual++; cargarProductos(); }});
+  }
+
   function cargarProductos() {
     var params = new URLSearchParams();
     if (filtroTexto.value.trim()) params.set('q', filtroTexto.value.trim());
     if (filtroCategoria.value) params.set('categoria', filtroCategoria.value);
+    params.set('page', String(paginaActual));
+    params.set('limit', String(porPagina));
 
     return apiFetch('/api/productos?' + params.toString()).then(function (data) {
-      productos = data;
+      // Soporta respuesta paginada {data,total,page,totalPages} y array legado
+      if (data && Array.isArray(data.data)) {
+        productos = data.data;
+        totalPaginas = data.totalPages || 1;
+        paginaActual = data.page || paginaActual;
+      } else if (Array.isArray(data)) {
+        productos = data;
+        totalPaginas = 1;
+      } else {
+        productos = [];
+        totalPaginas = 1;
+      }
       renderTabla();
+      renderPaginacion();
     });
+  }
+
+  function resetPaginaYCargar() {
+    paginaActual = 1;
+    return cargarProductos();
   }
 
   function renderTabla() {
@@ -215,6 +260,7 @@
         restaurarBoton();
         cerrarDrawer();
         showToast(id ? 'Producto actualizado.' : 'Producto creado.', 'ok');
+        if (!id) paginaActual = 1;
         return cargarProductos();
       })
       .catch(function (err) {
@@ -230,6 +276,13 @@
       .then(function () {
         showToast('Producto eliminado.', 'ok');
         return cargarProductos();
+      })
+      .then(function () {
+        // Si la página quedó vacía y no es la primera, retrocede
+        if (productos.length === 0 && paginaActual > 1) {
+          paginaActual--;
+          return cargarProductos();
+        }
       })
       .catch(function (err) {
         showToast(err.message, 'error');
@@ -256,9 +309,9 @@
   var debounceTimer;
   filtroTexto.addEventListener('input', function () {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(cargarProductos, 300);
+    debounceTimer = setTimeout(resetPaginaYCargar, 300);
   });
-  filtroCategoria.addEventListener('change', cargarProductos);
+  filtroCategoria.addEventListener('change', resetPaginaYCargar);
 
   cargarCategorias().then(cargarProductos).catch(function (err) { showToast(err.message, 'error'); });
 })();

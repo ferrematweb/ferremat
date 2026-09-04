@@ -1,6 +1,7 @@
 const prisma = require('../config/db');
 const { resolveImageUrl } = require('../utils/urls');
 const { imagePath, borrarImagen, borrarImagenes } = require('../utils/storage');
+const cache = require('../utils/cache');
 
 function serialize(producto) {
   return {
@@ -38,15 +39,16 @@ function parseBooleanQuery(valor) {
 
 /**
  * GET /api/productos
- * Pública. Filtros opcionales por query string:
+ * Pública. Filtros + paginación por query string:
  *   ?categoria=<slug>       filtra por categoría
  *   ?nuevo=true             solo "nuevos ingresos"
  *   ?destacado=true         solo destacados
  *   ?disponible=true|false  disponibilidad
  *   ?q=texto                búsqueda en nombre/descripción/sku
+ *   ?page=1&limit=20        paginación (si se envía page/limit devuelve objeto paginado)
  */
 async function listar(req, res) {
-  const { categoria, nuevo, destacado, disponible, q } = req.query;
+  const { categoria, nuevo, destacado, disponible, q, page, limit } = req.query;
 
   const where = {};
   if (categoria) where.categoria = { slug: String(categoria) };
@@ -63,6 +65,46 @@ async function listar(req, res) {
     ];
   }
 
+  // Caché en memoria (45s) — clave = URL completa con query
+  const cacheKey = `productos:${req.originalUrl}`;
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    res.set('X-Cache', 'HIT');
+    res.set('Cache-Control', 'public, max-age=30');
+    if (cached.total !== undefined) res.set('X-Total-Count', String(cached.total));
+    return res.json(cached);
+  }
+
+  const usePagination = page !== undefined || limit !== undefined;
+  if (usePagination) {
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const skip = (pageNum - 1) * limitNum;
+    const [total, productos] = await Promise.all([
+      prisma.producto.count({ where }),
+      prisma.producto.findMany({
+        where,
+        include: { categoria: true, imagenes: { orderBy: { orden: 'asc' } } },
+        orderBy: [{ destacado: 'desc' }, { creadoEn: 'desc' }],
+        skip,
+        take: limitNum
+      })
+    ]);
+    const totalPages = Math.ceil(total / limitNum);
+    const payload = {
+      data: productos.map(serialize),
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages
+    };
+    cache.set(cacheKey, payload, 45 * 1000);
+    res.set('X-Cache', 'MISS');
+    res.set('Cache-Control', 'public, max-age=30');
+    res.set('X-Total-Count', String(total));
+    return res.json(payload);
+  }
+
   const productos = await prisma.producto.findMany({
     where,
     include: {
@@ -72,7 +114,11 @@ async function listar(req, res) {
     orderBy: [{ destacado: 'desc' }, { creadoEn: 'desc' }]
   });
 
-  return res.json(productos.map(serialize));
+  const payload = productos.map(serialize);
+  cache.set(cacheKey, payload, 45 * 1000);
+  res.set('X-Cache', 'MISS');
+  res.set('Cache-Control', 'public, max-age=30');
+  return res.json(payload);
 }
 
 /**
@@ -216,6 +262,8 @@ async function crear(req, res) {
     include: { categoria: true, imagenes: { orderBy: { orden: 'asc' } } }
   });
 
+  cache.delByPrefix('productos');
+  cache.delByPrefix('categorias');
   return res.status(201).json(serialize(productoFinal));
 }
 
@@ -332,6 +380,8 @@ async function actualizar(req, res) {
 
   if (imagenAnterior && !conservaImagenAnterior) await borrarImagen(imagenAnterior);
 
+  cache.delByPrefix('productos');
+  cache.delByPrefix('categorias');
   return res.json(serialize(productoFinal));
 }
 
@@ -348,6 +398,8 @@ async function eliminar(req, res) {
   if (producto.imagen) await borrarImagen(producto.imagen);
   await borrarGaleriasLocales(producto.imagenes);
 
+  cache.delByPrefix('productos');
+  cache.delByPrefix('categorias');
   return res.json({ ok: true });
 }
 
