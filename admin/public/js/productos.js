@@ -27,6 +27,32 @@
     if (panel && panel.parentNode) panel.parentNode.insertBefore(paginacionEl, panel.nextSibling);
   }
 
+  // Compresión en el navegador: baja fotos de 4MB a ~200KB antes de subir (más rápido y estable)
+  function comprimirImagen(file) {
+    return new Promise(function (resolve) {
+      if (!file || !file.type || file.type.indexOf('image/') !== 0) return resolve(file);
+      if (file.size < 350 * 1024) return resolve(file);
+      var img = new Image();
+      img.onload = function () {
+        var max = 1280;
+        var scale = Math.min(1, max / Math.max(img.width, img.height));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function (blob) {
+          URL.revokeObjectURL(img.src);
+          if (!blob) return resolve(file);
+          var nuevo = new File([blob], file.name, { type: file.type, lastModified: Date.now() });
+          resolve(nuevo.size < file.size ? nuevo : file);
+        }, file.type, 0.82);
+      };
+      img.onerror = function () { URL.revokeObjectURL(img.src); resolve(file); };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
   var drawer = document.getElementById('drawerProducto');
   var form = document.getElementById('formProducto');
   var formError = document.getElementById('formProductoError');
@@ -234,17 +260,6 @@
     var btnCancelar = document.getElementById('btnCancelarProducto');
     if (btnCancelar) btnCancelar.disabled = true;
 
-    var formData = new FormData(form);
-
-    // Los checkboxes no marcados no se envían por FormData; forzamos su valor "false".
-    ['disponible', 'destacado', 'nuevo', 'eliminarImagen'].forEach(function (campo) {
-      var checkbox = form.querySelector('[name="' + campo + '"]');
-      if (checkbox && !checkbox.checked) formData.set(campo, 'false');
-    });
-
-    var url = id ? '/api/productos/' + id : '/api/productos';
-    var method = id ? 'PUT' : 'POST';
-
     function restaurarBoton() {
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -255,19 +270,49 @@
       if (btnCancelar) btnCancelar.disabled = false;
     }
 
-    apiFetch(url, { method: method, body: formData })
-      .then(function () {
-        restaurarBoton();
-        cerrarDrawer();
-        showToast(id ? 'Producto actualizado.' : 'Producto creado.', 'ok');
-        if (!id) paginaActual = 1;
-        return cargarProductos();
-      })
-      .catch(function (err) {
-        restaurarBoton();
-        formError.textContent = err.message;
-        formError.hidden = false;
+    // Comprime imágenes en el navegador antes de subir (4MB -> ~200KB, 10x más rápido)
+    var fImagen = document.getElementById('fImagenArchivo');
+    var fGaleria = document.getElementById('fImagenesArchivo');
+    var pImagen = fImagen && fImagen.files[0] ? comprimirImagen(fImagen.files[0]) : Promise.resolve(null);
+    var pGaleria = fGaleria && fGaleria.files.length ? Promise.all(Array.from(fGaleria.files).map(comprimirImagen)) : Promise.resolve([]);
+
+    Promise.all([pImagen, pGaleria]).then(function (res) {
+      var imgComprimida = res[0];
+      var galeriaComprimida = res[1];
+
+      var formData = new FormData(form);
+
+      // Reemplaza archivos originales por los comprimidos
+      if (fImagen && fImagen.files.length) {
+        formData.delete('imagen');
+        if (imgComprimida) formData.append('imagen', imgComprimida, imgComprimida.name);
+      }
+      if (fGaleria && fGaleria.files.length) {
+        formData.delete('imagenes');
+        galeriaComprimida.forEach(function (f) { formData.append('imagenes', f, f.name); });
+      }
+
+      // Los checkboxes no marcados no se envían por FormData; forzamos su valor "false".
+      ['disponible', 'destacado', 'nuevo', 'eliminarImagen'].forEach(function (campo) {
+        var checkbox = form.querySelector('[name="' + campo + '"]');
+        if (checkbox && !checkbox.checked) formData.set(campo, 'false');
       });
+
+      var url = id ? '/api/productos/' + id : '/api/productos';
+      var method = id ? 'PUT' : 'POST';
+
+      return apiFetch(url, { method: method, body: formData });
+    }).then(function () {
+      restaurarBoton();
+      cerrarDrawer();
+      showToast(id ? 'Producto actualizado.' : 'Producto creado.', 'ok');
+      if (!id) paginaActual = 1;
+      return cargarProductos();
+    }).catch(function (err) {
+      restaurarBoton();
+      formError.textContent = err.message;
+      formError.hidden = false;
+    });
   }
 
   function eliminarProducto(id) {
