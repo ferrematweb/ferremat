@@ -74,12 +74,18 @@ function generar(productos) {
     .slice(0, 80)
     .join(', ');
 
+  // Solo productos con precio + imagen válidos para que Google los marque como válidos en rich results.
+  // Los productos con precio=null ("Consultar precio") se siguen viendo en la tienda, solo no entran al ItemList SEO.
+  const productosValidos = productos.filter(function (p) {
+    return typeof p.precio === 'number' && p.precio !== null && !!resolveImageUrl(p.imagen);
+  });
+
   const itemList = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: 'Productos de FERREMAT CIX',
-    numberOfItems: productos.length,
-    itemListElement: productos.map(aProductoJsonLd)
+    numberOfItems: productosValidos.length,
+    itemListElement: productosValidos.map(aProductoJsonLd)
   };
 
   const breadcrumb = {
