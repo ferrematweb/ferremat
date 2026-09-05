@@ -53,6 +53,24 @@
     });
   }
 
+  // Subida directa a Supabase (navegador -> Storage) sin pasar por Render — 5-10x más rápida en móvil
+  function subirDirecto(file, bucket) {
+    return apiFetch('/api/uploads/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bucket: bucket || 'productos', contentType: file.type })
+    }).then(function (pres) {
+      return fetch(pres.signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      }).then(function (r) {
+        if (!r.ok) throw new Error('Upload directo falló: ' + r.status);
+        return pres.publicUrl;
+      });
+    });
+  }
+
   var drawer = document.getElementById('drawerProducto');
   var form = document.getElementById('formProducto');
   var formError = document.getElementById('formProductoError');
@@ -280,28 +298,74 @@
       var imgComprimida = res[0];
       var galeriaComprimida = res[1];
 
-      var formData = new FormData(form);
-
-      // Reemplaza archivos originales por los comprimidos
-      if (fImagen && fImagen.files.length) {
-        formData.delete('imagen');
-        if (imgComprimida) formData.append('imagen', imgComprimida, imgComprimida.name);
+      // Intenta subida directa a Supabase (evita doble salto por Render). Si falla, cae a FormData clásico.
+      var tieneArchivos = (imgComprimida && fImagen.files.length) || galeriaComprimida.length;
+      if (!tieneArchivos) {
+        // Sin archivos nuevos, envío clásico sin subida directa
+        var formData0 = new FormData(form);
+        ['disponible', 'destacado', 'nuevo', 'eliminarImagen'].forEach(function (campo) {
+          var checkbox = form.querySelector('[name="' + campo + '"]');
+          if (checkbox && !checkbox.checked) formData0.set(campo, 'false');
+        });
+        var url0 = id ? '/api/productos/' + id : '/api/productos';
+        var method0 = id ? 'PUT' : 'POST';
+        return apiFetch(url0, { method: method0, body: formData0 });
       }
-      if (fGaleria && fGaleria.files.length) {
-        formData.delete('imagenes');
-        galeriaComprimida.forEach(function (f) { formData.append('imagenes', f, f.name); });
-      }
 
-      // Los checkboxes no marcados no se envían por FormData; forzamos su valor "false".
-      ['disponible', 'destacado', 'nuevo', 'eliminarImagen'].forEach(function (campo) {
-        var checkbox = form.querySelector('[name="' + campo + '"]');
-        if (checkbox && !checkbox.checked) formData.set(campo, 'false');
+      var directOps = [];
+      if (imgComprimida) {
+        directOps.push(subirDirecto(imgComprimida, 'productos').then(function (url) { return { field: 'imagen', url: url, file: imgComprimida }; }));
+      }
+      galeriaComprimida.forEach(function (f) {
+        directOps.push(subirDirecto(f, 'productos').then(function (url) { return { field: 'imagenes', url: url, file: f }; }));
       });
 
-      var url = id ? '/api/productos/' + id : '/api/productos';
-      var method = id ? 'PUT' : 'POST';
-
-      return apiFetch(url, { method: method, body: formData });
+      return Promise.all(directOps.map(function (p) { return p.catch(function () { return null; }); })).then(function (results) {
+        var allOk = results.length > 0 && results.every(function (r) { return r !== null; });
+        if (allOk) {
+          // Éxito directo: envía solo URLs, sin archivos
+          var imagenUrlDirecta = null;
+          var galeriaUrlsDirectas = [];
+          results.forEach(function (r) { if (r.field === 'imagen') imagenUrlDirecta = r.url; else galeriaUrlsDirectas.push(r.url); });
+          // Inyecta URLs en galeria y en campo imagenUrl
+          if (galeriaUrlsDirectas.length) {
+            galeriaUrlsDirectas.forEach(function (u) { galeria.push(u); });
+            fImagenesUrl.value = JSON.stringify(galeria);
+          }
+          var formDataDirect = new FormData(form);
+          // Limpia archivos (ya subidos) y fija URLs
+          formDataDirect.delete('imagen');
+          formDataDirect.delete('imagenes');
+          if (imagenUrlDirecta) formDataDirect.set('imagenUrl', imagenUrlDirecta);
+          // Asegura que imagenesUrl refleje la galería actualizada
+          formDataDirect.set('imagenesUrl', JSON.stringify(galeria));
+          ['disponible', 'destacado', 'nuevo', 'eliminarImagen'].forEach(function (campo) {
+            var checkbox = form.querySelector('[name="' + campo + '"]');
+            if (checkbox && !checkbox.checked) formDataDirect.set(campo, 'false');
+          });
+          var urlD = id ? '/api/productos/' + id : '/api/productos';
+          var methodD = id ? 'PUT' : 'POST';
+          return apiFetch(urlD, { method: methodD, body: formDataDirect });
+        } else {
+          // Fallback: envío clásico con archivos comprimidos por Render
+          var formData = new FormData(form);
+          if (fImagen && fImagen.files.length) {
+            formData.delete('imagen');
+            if (imgComprimida) formData.append('imagen', imgComprimida, imgComprimida.name);
+          }
+          if (fGaleria && fGaleria.files.length) {
+            formData.delete('imagenes');
+            galeriaComprimida.forEach(function (f) { formData.append('imagenes', f, f.name); });
+          }
+          ['disponible', 'destacado', 'nuevo', 'eliminarImagen'].forEach(function (campo) {
+            var checkbox = form.querySelector('[name="' + campo + '"]');
+            if (checkbox && !checkbox.checked) formData.set(campo, 'false');
+          });
+          var url = id ? '/api/productos/' + id : '/api/productos';
+          var method = id ? 'PUT' : 'POST';
+          return apiFetch(url, { method: method, body: formData });
+        }
+      });
     }).then(function () {
       restaurarBoton();
       cerrarDrawer();

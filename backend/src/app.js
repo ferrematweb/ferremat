@@ -12,6 +12,7 @@ const authRoutes = require('./routes/auth.routes');
 const productosRoutes = require('./routes/productos.routes');
 const categoriasRoutes = require('./routes/categorias.routes');
 const menuRoutes = require('./routes/menu.routes');
+const uploadsRoutes = require('./routes/uploads.routes');
 const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
@@ -109,6 +110,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/categorias', categoriasRoutes);
 app.use('/api/menu', menuRoutes);
+app.use('/api/uploads', uploadsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, servicio: 'ferremat-backend' }));
 
