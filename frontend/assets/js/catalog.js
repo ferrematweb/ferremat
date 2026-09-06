@@ -540,5 +540,22 @@
   // Expone para debug si se necesita
   window.FERREMAT_MODAL = { abrir: abrirModal, cerrar: cerrarModal };
 
-  document.addEventListener('DOMContentLoaded', initModalDom);
+  function initHeaderSearch() {
+    var btn = document.getElementById('headerSearchBtn');
+    var searchInput = document.getElementById('catalogSearch');
+    var productosSection = document.getElementById('productos');
+    if (!btn || !searchInput || !productosSection) return;
+    btn.addEventListener('click', function () {
+      var header = document.getElementById('header');
+      var offset = header ? header.offsetHeight : 0;
+      var top = productosSection.getBoundingClientRect().top + window.scrollY - offset - 10;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+      setTimeout(function () { searchInput.focus(); }, 500);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initModalDom();
+    initHeaderSearch();
+  });
 })();
