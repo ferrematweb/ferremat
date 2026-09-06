@@ -548,7 +548,6 @@
 
   function initHeaderSearch() {
     var btn = document.getElementById('headerSearchBtn');
-    var wrap = document.getElementById('headerSearchWrap');
     var headerSearch = document.getElementById('headerSearch');
     var headerInput = document.getElementById('headerSearchInput');
     var headerClose = document.getElementById('headerSearchClose');
@@ -606,15 +605,6 @@
       if (e.key === 'Enter') {
         e.preventDefault();
         filtrarDesdeHeader();
-      }
-    });
-    // Clic fuera cierra
-    document.addEventListener('click', function (e) {
-      if (!wrap.contains(e.target) && !headerSearch.hidden) {
-        // No cerrar si el clic fue dentro del catálogo (filtra), solo si fue fuera del header
-        if (!e.target.closest('#headerSearch') && !e.target.closest('#headerSearchBtn')) {
-          // Mantener abierto mientras escribe; solo cierra con X o Escape
-        }
       }
     });
   }
