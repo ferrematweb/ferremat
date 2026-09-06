@@ -394,4 +394,151 @@
   // Se dispara desde products-data.js cuando la respuesta de la API
   // (categorías + productos) ya está lista en window.FERREMAT_CATALOG.
   document.addEventListener('ferremat:catalog-ready', intentarRenderizar);
+
+  // ========================================
+  // MODAL DE DETALLE DE PRODUCTO
+  // ========================================
+  var modalEl = null, modalMainImg = null, modalThumbsEl = null;
+  var modalBrandEl = null, modalNameEl = null, modalMetaEl = null, modalPriceEl = null, modalDescEl = null, modalTagsEl = null;
+  var modalQtyWrap = null, modalQtyValue = null, modalAddBtn = null, modalWhatsappBtn = null;
+  var modalProduct = null;
+  var modalQty = 1;
+
+  function initModalDom() {
+    modalEl = document.getElementById('productModal');
+    if (!modalEl) return false;
+    modalMainImg = document.getElementById('modalMainImg');
+    modalThumbsEl = document.getElementById('modalThumbs');
+    modalBrandEl = document.getElementById('modalProductBrand');
+    modalNameEl = document.getElementById('modalProductName');
+    modalMetaEl = document.getElementById('modalProductMeta');
+    modalPriceEl = document.getElementById('modalProductPrice');
+    modalDescEl = document.getElementById('modalProductDesc');
+    modalTagsEl = document.getElementById('modalProductTags');
+    modalQtyWrap = document.getElementById('modalQtyWrap');
+    modalQtyValue = document.getElementById('modalQtyValue');
+    modalAddBtn = document.getElementById('modalAddBtn');
+    modalWhatsappBtn = document.getElementById('modalWhatsappBtn');
+
+    document.getElementById('productModalClose').addEventListener('click', cerrarModal);
+    document.getElementById('productModalOverlay').addEventListener('click', cerrarModal);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modalEl.classList.contains('is-open')) cerrarModal(); });
+    document.getElementById('modalQtyMinus').addEventListener('click', function () { if (modalQty > 1) { modalQty--; modalQtyValue.textContent = modalQty; }});
+    document.getElementById('modalQtyPlus').addEventListener('click', function () { modalQty++; modalQtyValue.textContent = modalQty; });
+    modalAddBtn.addEventListener('click', function () {
+      if (!modalProduct) return;
+      var cart = window.FERREMAT_CART;
+      if (cart) {
+        for (var i = 0; i < modalQty; i++) cart.addItem(modalProduct.id, modalProduct.nombre);
+      }
+      cerrarModal();
+    });
+    modalWhatsappBtn.addEventListener('click', function () {
+      if (!modalProduct) return;
+      var cfg = window.FERREMAT_CONFIG;
+      if (!cfg || !cfg.VENDEDORES || !cfg.VENDEDORES.length) return;
+      // Usa el primer vendedor por defecto para consulta rápida
+      var vendedor = cfg.VENDEDORES[0];
+      var msg = cfg.buildWhatsappMessage([{ nombre: modalProduct.nombre, cantidad: modalQty }], vendedor.nombre, '');
+      var url = cfg.buildWhatsappUrl(vendedor.whatsapp, msg);
+      window.open(url, '_blank', 'noopener');
+    });
+    return true;
+  }
+
+  function abrirModal(product) {
+    if (!modalEl) initModalDom();
+    if (!modalEl || !product) return;
+    modalProduct = product;
+    modalQty = 1;
+    if (modalQtyValue) modalQtyValue.textContent = '1';
+
+    // Galería
+    var galeria = (product.imagenes && product.imagenes.length) ? product.imagenes.slice() : [product.imagen];
+    if (galeria.indexOf(product.imagen) === -1) galeria.unshift(product.imagen);
+    galeria = galeria.filter(Boolean);
+    if (modalMainImg) {
+      modalMainImg.src = galeria[0] || '';
+      modalMainImg.alt = product.nombre;
+    }
+    if (modalThumbsEl) {
+      modalThumbsEl.innerHTML = '';
+      galeria.forEach(function (url, idx) {
+        var t = document.createElement('img');
+        t.src = url;
+        t.alt = '';
+        t.className = idx === 0 ? 'is-active' : '';
+        t.addEventListener('click', function () {
+          modalMainImg.src = url;
+          Array.prototype.forEach.call(modalThumbsEl.children, function (c, i) { c.classList.toggle('is-active', i === idx); });
+        });
+        modalThumbsEl.appendChild(t);
+      });
+      modalThumbsEl.hidden = galeria.length <= 1;
+    }
+
+    if (modalBrandEl) modalBrandEl.textContent = product.marca || '';
+    if (modalNameEl) modalNameEl.textContent = product.nombre || '';
+    if (modalMetaEl) {
+      var meta = [];
+      if (product.sku) meta.push('<span>SKU: ' + escapeHtml(product.sku) + '</span>');
+      if (product.categoria) {
+        var catNombre = typeof product.categoria === 'string' ? product.categoria : (product.categoria.nombre || product.categoria);
+        meta.push('<span>' + escapeHtml(categoryName(catNombre) !== catNombre ? categoryName(catNombre) : catNombre) + '</span>');
+      }
+      if (product.marca) meta.push('<span>' + escapeHtml(product.marca) + '</span>');
+      modalMetaEl.innerHTML = meta.join(' · ');
+    }
+    if (modalPriceEl) {
+      var pb = buildPriceBlock(product);
+      modalPriceEl.innerHTML = pb.priceBlockHtml;
+    }
+    if (modalDescEl) modalDescEl.textContent = product.descripcion || 'Sin descripción disponible.';
+    if (modalTagsEl) {
+      var tags = '';
+      if (product.destacado) tags += '<span class="badge badge--info">Destacado</span> ';
+      if (product.nuevo) tags += '<span class="badge badge--new">Nuevo</span>';
+      if (!product.disponible) tags += '<span class="badge badge--off">Agotado</span>';
+      modalTagsEl.innerHTML = tags;
+    }
+    if (modalQtyWrap) modalQtyWrap.hidden = !product.disponible;
+    if (modalAddBtn) {
+      modalAddBtn.disabled = !product.disponible;
+      modalAddBtn.textContent = product.disponible ? '+ Agregar a mi lista' : 'No disponible';
+    }
+
+    modalEl.classList.add('is-open');
+    modalEl.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function cerrarModal() {
+    if (!modalEl) return;
+    modalEl.classList.remove('is-open');
+    modalEl.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    modalProduct = null;
+  }
+
+  // Delegación: clic en cualquier card (imagen o nombre) abre el modal, excepto en botones
+  document.addEventListener('click', function (e) {
+    var card = e.target.closest('.product-card');
+    if (!card) return;
+    // Si clic fue en botones internos, no abrir modal
+    if (e.target.closest('button') || e.target.closest('.product-card__actions')) return;
+    var id = card.getAttribute('data-id');
+    if (!id) return;
+    var prod = null;
+    if (CATALOG && CATALOG.PRODUCTS) {
+      for (var i = 0; i < CATALOG.PRODUCTS.length; i++) {
+        if (String(CATALOG.PRODUCTS[i].id) === String(id) || String(CATALOG.PRODUCTS[i].id) === id) { prod = CATALOG.PRODUCTS[i]; break; }
+      }
+    }
+    if (prod) abrirModal(prod);
+  });
+
+  // Expone para debug si se necesita
+  window.FERREMAT_MODAL = { abrir: abrirModal, cerrar: cerrarModal };
+
+  document.addEventListener('DOMContentLoaded', initModalDom);
 })();

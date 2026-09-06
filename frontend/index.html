@@ -855,6 +855,43 @@
   <div class="list-toast" id="listToast"></div>
 
   <!-- ========================================
+       PRODUCT DETAIL MODAL
+       ======================================== -->
+  <div class="product-modal" id="productModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalProductName">
+    <div class="product-modal__overlay" id="productModalOverlay"></div>
+    <div class="product-modal__window" role="document">
+      <button type="button" class="product-modal__close" id="productModalClose" aria-label="Cerrar detalle de producto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <div class="product-modal__content">
+        <div class="product-modal__gallery">
+          <div class="product-modal__main-img">
+            <img id="modalMainImg" src="" alt="">
+          </div>
+          <div class="product-modal__thumbs" id="modalThumbs"></div>
+        </div>
+        <div class="product-modal__details">
+          <div class="product-modal__brand" id="modalProductBrand"></div>
+          <h2 class="product-modal__name" id="modalProductName"></h2>
+          <div class="product-modal__meta" id="modalProductMeta"></div>
+          <div class="product-modal__price" id="modalProductPrice"></div>
+          <p class="product-modal__desc" id="modalProductDesc"></p>
+          <div class="product-modal__tags" id="modalProductTags"></div>
+          <div class="product-modal__actions">
+            <div class="product-modal__qty" id="modalQtyWrap" hidden>
+              <button type="button" class="qty-btn qty-btn--minus" id="modalQtyMinus" aria-label="Disminuir cantidad">−</button>
+              <span class="qty-value" id="modalQtyValue">1</span>
+              <button type="button" class="qty-btn qty-btn--plus" id="modalQtyPlus" aria-label="Aumentar cantidad">+</button>
+            </div>
+            <button type="button" class="btn btn--primary product-modal__add" id="modalAddBtn">+ Agregar a mi lista</button>
+            <button type="button" class="btn btn--outline product-modal__whatsapp" id="modalWhatsappBtn">Consultar por WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================
        JAVASCRIPT
        ======================================== -->
   <script src="assets/js/config.js"></script>
