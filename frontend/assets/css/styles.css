@@ -2047,11 +2047,11 @@
       .header__search {
         position: fixed;
         top: 68px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        width: 92%;
-        max-width: 340px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-width: none;
+        transform: none;
         z-index: 100;
       }
       .header__search input {
