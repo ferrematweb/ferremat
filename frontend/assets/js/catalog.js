@@ -659,12 +659,9 @@
     headerInput.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') { headerSuggest.hidden = true; cerrarBusquedaHeader(); }
     });
-    // Filtrar y sugerir al escribir (debounce)
-    var debounce = null;
+    // Sugerir al escribir (no filtra el catálogo hasta presionar Enter/Ver todos/sugerencia)
     var debounceSuggest = null;
     headerInput.addEventListener('input', function () {
-      clearTimeout(debounce);
-      debounce = setTimeout(filtrarDesdeHeader, 600);
       clearTimeout(debounceSuggest);
       debounceSuggest = setTimeout(renderSuggest, 150);
     });
