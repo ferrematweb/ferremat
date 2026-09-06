@@ -552,6 +552,10 @@
     var headerSearch = document.getElementById('headerSearch');
     var headerInput = document.getElementById('headerSearchInput');
     var headerClose = document.getElementById('headerSearchClose');
+    var headerSuggest = document.getElementById('headerSuggest');
+    var headerSuggestList = document.getElementById('headerSuggestList');
+    var headerSuggestAll = document.getElementById('headerSuggestAll');
+    var headerSuggestHints = document.getElementById('headerSuggestHints');
     var catalogInput = document.getElementById('catalogSearch');
     var productosSection = document.getElementById('productos');
     if (!btn || !headerSearch || !headerInput) return;
@@ -564,6 +568,7 @@
     function cerrarBusquedaHeader() {
       var habiaBusqueda = headerInput.value.trim() !== '';
       headerSearch.hidden = true;
+      if (headerSuggest) headerSuggest.hidden = true;
       btn.hidden = false;
       headerInput.value = '';
       // Si había búsqueda, limpia el filtro del catálogo
@@ -581,7 +586,7 @@
       filters.search = q;
       visibleCount = PAGE_SIZE;
       renderGrid();
-      // Si no hay resultados, el empty ya muestra el mensaje personalizado
+      if (headerSuggest) headerSuggest.hidden = true;
       if (productosSection) {
         var header = document.getElementById('header');
         var offset = header ? header.offsetHeight : 0;
@@ -590,31 +595,91 @@
       }
     }
 
+    function renderSuggest() {
+      if (!headerSuggest || !headerSuggestList) return;
+      var q = headerInput.value.trim().toLowerCase();
+      if (!q || q.length < 2) { headerSuggest.hidden = true; return; }
+      var matches = [];
+      if (CATALOG && CATALOG.PRODUCTS) {
+        for (var i = 0; i < CATALOG.PRODUCTS.length && matches.length < 5; i++) {
+          var p = CATALOG.PRODUCTS[i];
+          var hay = (p.nombre && p.nombre.toLowerCase().indexOf(q) !== -1) ||
+                    (p.sku && p.sku.toLowerCase().indexOf(q) !== -1) ||
+                    (p.descripcion && p.descripcion.toLowerCase().indexOf(q) !== -1);
+          if (hay) matches.push(p);
+        }
+      }
+      headerSuggestList.innerHTML = '';
+      if (matches.length === 0) { headerSuggest.hidden = true; return; }
+      matches.forEach(function (p) {
+        var row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'header__suggest-item';
+        var precio = typeof p.precio === 'number' ? formatPEN(p.precio) : '';
+        row.innerHTML = '<img src="' + (p.imagen || '') + '" alt=""><div class="header__suggest-item__info"><div class="header__suggest-item__name">' + escapeHtml(p.nombre) + '</div></div><div class="header__suggest-item__price">' + precio + '</div>';
+        row.addEventListener('click', function () {
+          headerInput.value = p.nombre;
+          if (catalogInput) catalogInput.value = p.nombre;
+          filters.search = p.nombre;
+          visibleCount = PAGE_SIZE;
+          renderGrid();
+          headerSuggest.hidden = true;
+          // Abre el modal del producto
+          if (window.FERREMAT_MODAL && window.FERREMAT_MODAL.abrir) window.FERREMAT_MODAL.abrir(p);
+          if (productosSection) {
+            var header = document.getElementById('header');
+            var offset = header ? header.offsetHeight : 0;
+            var top = productosSection.getBoundingClientRect().top + window.scrollY - offset - 10;
+            window.scrollTo({ top: top, behavior: 'smooth' });
+          }
+        });
+        headerSuggestList.appendChild(row);
+      });
+      // Hints por categoría
+      if (headerSuggestHints) {
+        var cats = {};
+        matches.forEach(function (p) { if (p.categoria) { var c = typeof p.categoria === 'string' ? p.categoria : p.categoria; cats[c] = true; }});
+        var catList = Object.keys(cats).slice(0, 2);
+        headerSuggestHints.innerHTML = '';
+        catList.forEach(function (c) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.innerHTML = 'Buscar <strong>' + escapeHtml(q) + '</strong> en ' + escapeHtml(categoryName(c));
+          b.addEventListener('click', function () { headerInput.value = q; filtrarDesdeHeader(); headerSuggest.hidden = true; });
+          headerSuggestHints.appendChild(b);
+        });
+      }
+      headerSuggest.hidden = false;
+    }
+
     btn.addEventListener('click', abrirBusquedaHeader);
     headerClose.addEventListener('click', cerrarBusquedaHeader);
+    if (headerSuggestAll) headerSuggestAll.addEventListener('click', function () { filtrarDesdeHeader(); });
     // Cerrar con Escape
     headerInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') cerrarBusquedaHeader();
+      if (e.key === 'Escape') { headerSuggest.hidden = true; cerrarBusquedaHeader(); }
     });
-    // Filtrar al escribir (debounce) y al dar Enter
+    // Filtrar y sugerir al escribir (debounce)
     var debounce = null;
+    var debounceSuggest = null;
     headerInput.addEventListener('input', function () {
       clearTimeout(debounce);
-      debounce = setTimeout(filtrarDesdeHeader, 250);
+      debounce = setTimeout(filtrarDesdeHeader, 600);
+      clearTimeout(debounceSuggest);
+      debounceSuggest = setTimeout(renderSuggest, 150);
     });
     headerInput.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') {
         e.preventDefault();
+        if (headerSuggest) headerSuggest.hidden = true;
         filtrarDesdeHeader();
       }
     });
-    // Clic fuera cierra
+    // Clic fuera cierra sugerencias
     document.addEventListener('click', function (e) {
-      if (!wrap.contains(e.target) && !headerSearch.hidden) {
-        // No cerrar si el clic fue dentro del catálogo (filtra), solo si fue fuera del header
-        if (!e.target.closest('#headerSearch') && !e.target.closest('#headerSearchBtn')) {
-          // Mantener abierto mientras escribe; solo cierra con X o Escape
-        }
+      if (!wrap || !headerSearch) return;
+      if (!wrap.contains(e.target) && headerSuggest && !headerSuggest.hidden) {
+        if (!e.target.closest('#headerSuggest')) headerSuggest.hidden = true;
       }
     });
   }
