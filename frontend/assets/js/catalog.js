@@ -603,7 +603,6 @@
         if (nombreLow.indexOf(q) === 0) return 3;
         var words = nombreLow.split(/\s+/);
         for (var w = 0; w < words.length; w++) if (words[w].indexOf(q) === 0) return 2;
-        if (nombreLow.indexOf(q) !== -1) return 1;
         return -1;
       }
       var candidatos = [];
@@ -612,12 +611,8 @@
           var p = CATALOG.PRODUCTS[i];
           var nombreLow = (p.nombre || '').toLowerCase();
           var skuLow = (p.sku || '').toLowerCase();
-          var descLow = (p.descripcion || '').toLowerCase();
           var score = scorePorNombre(nombreLow, q);
-          if (score < 0) {
-            if (skuLow.indexOf(q) !== -1) score = 1;
-            else if (descLow.indexOf(q) !== -1) score = 0;
-          }
+          if (score < 0 && skuLow.indexOf(q) === 0) score = 1;
           if (score >= 0) candidatos.push({ p: p, score: score, idx: i });
         }
         candidatos.sort(function (a, b) { if (b.score !== a.score) return b.score - a.score; return a.idx - b.idx; });

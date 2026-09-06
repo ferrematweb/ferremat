@@ -2088,10 +2088,9 @@
     .header__suggest-item img {
       width: 48px;
       height: 48px;
-      object-fit: contain;
+      object-fit: cover;
       border-radius: 6px;
       background: #f8fafc;
-      padding: 2px 3px;
       flex-shrink: 0;
     }
 
