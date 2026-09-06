@@ -649,13 +649,13 @@
 
     .product-card__img {
       position: relative;
-      height: 140px;
+      height: 132px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: var(--white);
       overflow: hidden;
-      padding: 4px;
+      padding: 2px;
     }
 
     .product-card__img img {
