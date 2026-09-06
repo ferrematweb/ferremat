@@ -1972,6 +1972,12 @@
       height: 20px;
     }
 
+    .header__search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
     .header__search[hidden] {
       display: none !important;
     }
@@ -1990,22 +1996,6 @@
       padding: 6px 8px 6px 10px;
       box-shadow: var(--shadow-sm);
       animation: headerSearchIn 0.2s ease;
-    }
-
-    /* Desktop: aparece al lado del botón, sin romper el layout */
-    @media (min-width: 769px) {
-      .header__search {
-        position: absolute;
-        top: 50%;
-        right: 360px;
-        transform: translateY(-50%);
-        z-index: 20;
-      }
-      .header--search-open .header__nav {
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s ease;
-      }
     }
 
     .header__search-icon {
@@ -2055,14 +2045,11 @@
 
     @media (max-width: 768px) {
       .header__search {
-        position: fixed;
-        top: 64px;
-        left: 12px;
-        right: 12px;
-        width: auto;
-        max-width: none;
-        transform: none;
-        z-index: 100;
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 280px;
+        z-index: 20;
       }
       .header__search input {
         width: 100%;
