@@ -2561,10 +2561,10 @@
     }
     .product-modal__gallery {
       background: #f8fafc;
-      padding: 24px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
       border-right: 1px solid var(--border-light);
     }
     .product-modal__main-img {
@@ -2574,14 +2574,14 @@
       justify-content: center;
       background: var(--white);
       border-radius: var(--radius-sm);
-      padding: 12px;
-      min-height: 280px;
+      padding: 6px;
+      min-height: 360px;
     }
     .product-modal__main-img img {
-      max-width: 100%;
-      max-height: 320px;
-      width: auto;
+      width: 100%;
       height: auto;
+      max-height: 380px;
+      max-width: 100%;
       object-fit: contain;
     }
     .product-modal__thumbs {
