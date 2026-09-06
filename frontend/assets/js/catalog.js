@@ -599,16 +599,31 @@
       if (!headerSuggest || !headerSuggestList) return;
       var q = headerInput.value.trim().toLowerCase();
       if (!q || q.length < 2) { headerSuggest.hidden = true; return; }
-      var matches = [];
-      if (CATALOG && CATALOG.PRODUCTS) {
-        for (var i = 0; i < CATALOG.PRODUCTS.length && matches.length < 5; i++) {
-          var p = CATALOG.PRODUCTS[i];
-          var hay = (p.nombre && p.nombre.toLowerCase().indexOf(q) !== -1) ||
-                    (p.sku && p.sku.toLowerCase().indexOf(q) !== -1) ||
-                    (p.descripcion && p.descripcion.toLowerCase().indexOf(q) !== -1);
-          if (hay) matches.push(p);
-        }
+      function scorePorNombre(nombreLow, q) {
+        if (nombreLow.indexOf(q) === 0) return 3;
+        var words = nombreLow.split(/\s+/);
+        for (var w = 0; w < words.length; w++) if (words[w].indexOf(q) === 0) return 2;
+        if (nombreLow.indexOf(q) !== -1) return 1;
+        return -1;
       }
+      var candidatos = [];
+      if (CATALOG && CATALOG.PRODUCTS) {
+        for (var i = 0; i < CATALOG.PRODUCTS.length; i++) {
+          var p = CATALOG.PRODUCTS[i];
+          var nombreLow = (p.nombre || '').toLowerCase();
+          var skuLow = (p.sku || '').toLowerCase();
+          var descLow = (p.descripcion || '').toLowerCase();
+          var score = scorePorNombre(nombreLow, q);
+          if (score < 0) {
+            if (skuLow.indexOf(q) !== -1) score = 1;
+            else if (descLow.indexOf(q) !== -1) score = 0;
+          }
+          if (score >= 0) candidatos.push({ p: p, score: score, idx: i });
+        }
+        candidatos.sort(function (a, b) { if (b.score !== a.score) return b.score - a.score; return a.idx - b.idx; });
+      }
+      var matches = [];
+      for (var j = 0; j < candidatos.length && matches.length < 5; j++) matches.push(candidatos[j].p);
       headerSuggestList.innerHTML = '';
       if (matches.length === 0) { headerSuggest.hidden = true; return; }
       matches.forEach(function (p) {
