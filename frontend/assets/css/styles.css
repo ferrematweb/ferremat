@@ -2075,7 +2075,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 10px 14px;
+      padding: 8px 14px;
       cursor: pointer;
       transition: background 0.15s;
       border-bottom: 1px solid #f1f5f9;
@@ -2091,7 +2091,7 @@
       object-fit: contain;
       border-radius: 6px;
       background: #f8fafc;
-      padding: 3px;
+      padding: 2px 3px;
       flex-shrink: 0;
     }
 
