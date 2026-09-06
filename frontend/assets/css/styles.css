@@ -1981,20 +1981,27 @@
     .header__search {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background: var(--white);
       border: 1px solid var(--border-light);
       border-radius: 999px;
-      padding: 6px 8px 6px 12px;
+      padding: 6px 8px 6px 10px;
       box-shadow: var(--shadow-sm);
       animation: headerSearchIn 0.2s ease;
+    }
+
+    .header__search-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--text-muted);
+      flex-shrink: 0;
     }
 
     .header__search input {
       border: none;
       outline: none;
       font-size: 14px;
-      width: 220px;
+      width: 200px;
       background: transparent;
       color: var(--text-dark);
     }
@@ -2004,13 +2011,13 @@
     }
 
     .header__search-close {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border: none;
       border-radius: 50%;
-      background: var(--bg-warm);
-      color: var(--text-dark);
-      font-size: 18px;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-size: 16px;
       line-height: 1;
       cursor: pointer;
       display: flex;
