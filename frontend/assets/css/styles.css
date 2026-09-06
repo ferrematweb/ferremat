@@ -1997,7 +1997,7 @@
       .header__search {
         position: absolute;
         top: 50%;
-        right: 160px;
+        right: 220px;
         transform: translateY(-50%);
         z-index: 20;
       }
