@@ -1978,6 +1978,14 @@
       align-items: center;
     }
 
+    .header__search[hidden] {
+      display: none !important;
+    }
+
+    .header__search-btn[hidden] {
+      display: none !important;
+    }
+
     .header__search {
       display: flex;
       align-items: center;

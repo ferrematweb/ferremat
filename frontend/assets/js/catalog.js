@@ -562,9 +562,17 @@
       headerInput.focus();
     }
     function cerrarBusquedaHeader() {
+      var habiaBusqueda = headerInput.value.trim() !== '';
       headerSearch.hidden = true;
       btn.hidden = false;
       headerInput.value = '';
+      // Si había búsqueda, limpia el filtro del catálogo
+      if (habiaBusqueda) {
+        if (catalogInput) catalogInput.value = '';
+        filters.search = '';
+        visibleCount = PAGE_SIZE;
+        renderGrid();
+      }
     }
     function filtrarDesdeHeader() {
       var q = headerInput.value.trim();
