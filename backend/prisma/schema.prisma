@@ -78,12 +78,15 @@ model Producto {
   destacado         Boolean   @default(false)
   // aparece en la sección "Nuevos ingresos" del inicio
   nuevo             Boolean   @default(false)
+  // ocultar producto del catálogo público sin borrarlo
+  oculto            Boolean   @default(false)
 
   creadoEn     DateTime @default(now())
   actualizadoEn DateTime @updatedAt
 
   @@index([categoriaId])
   @@index([disponible])
+  @@index([oculto])
   @@index([nuevo])
   @@index([destacado])
   @@index([creadoEn])

@@ -28,6 +28,7 @@ function serialize(producto) {
     disponible: producto.disponible,
     destacado: producto.destacado,
     nuevo: producto.nuevo,
+    oculto: producto.oculto,
     actualizadoEn: producto.actualizadoEn
   };
 }
@@ -48,13 +49,20 @@ function parseBooleanQuery(valor) {
  *   ?page=1&limit=20        paginación (si se envía page/limit devuelve objeto paginado)
  */
 async function listar(req, res) {
-  const { categoria, nuevo, destacado, disponible, q, page, limit } = req.query;
+  const { categoria, nuevo, destacado, disponible, oculto, q, page, limit } = req.query;
 
   const where = {};
   if (categoria) where.categoria = { slug: String(categoria) };
   if (parseBooleanQuery(nuevo) !== undefined) where.nuevo = parseBooleanQuery(nuevo);
   if (parseBooleanQuery(destacado) !== undefined) where.destacado = parseBooleanQuery(destacado);
   if (parseBooleanQuery(disponible) !== undefined) where.disponible = parseBooleanQuery(disponible);
+  // Por defecto el público no ve productos ocultos; el admin puede pasar ?oculto=true|false o ?incluirOcultos=true
+  const incluirOcultos = parseBooleanQuery(req.query.incluirOcultos);
+  if (parseBooleanQuery(oculto) !== undefined) {
+    where.oculto = parseBooleanQuery(oculto);
+  } else if (!incluirOcultos) {
+    where.oculto = false;
+  }
 
   if (q && String(q).trim()) {
     const texto = String(q).trim();
@@ -202,6 +210,7 @@ async function crear(req, res) {
     disponible,
     destacado,
     nuevo,
+    oculto,
     imagenUrl
   } = req.body || {};
 
@@ -240,6 +249,7 @@ async function crear(req, res) {
       disponible: disponible === undefined ? true : disponible === 'true' || disponible === true,
       destacado: destacado === 'true' || destacado === true,
       nuevo: nuevo === 'true' || nuevo === true,
+      oculto: oculto === 'true' || oculto === true,
       imagen
     }
   });
@@ -289,6 +299,7 @@ async function actualizar(req, res) {
     disponible,
     destacado,
     nuevo,
+    oculto,
     imagenUrl,
     eliminarImagen,
     eliminarPrecio
@@ -324,6 +335,7 @@ async function actualizar(req, res) {
   if (disponible !== undefined) data.disponible = disponible === 'true' || disponible === true;
   if (destacado !== undefined) data.destacado = destacado === 'true' || destacado === true;
   if (nuevo !== undefined) data.nuevo = nuevo === 'true' || nuevo === true;
+  if (oculto !== undefined) data.oculto = oculto === 'true' || oculto === true;
 
   let imagenAnterior = null;
   if (req.file) {

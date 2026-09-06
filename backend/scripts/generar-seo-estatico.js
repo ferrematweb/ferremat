@@ -114,7 +114,7 @@ function generar(productos) {
 async function main() {
   try {
     const productos = await prisma.producto.findMany({
-      where: { disponible: true !== false },
+      where: { oculto: false },
       include: { categoria: true },
       orderBy: [{ destacado: 'desc' }, { creadoEn: 'desc' }]
     });

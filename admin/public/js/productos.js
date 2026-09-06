@@ -111,6 +111,7 @@
     var params = new URLSearchParams();
     if (filtroTexto.value.trim()) params.set('q', filtroTexto.value.trim());
     if (filtroCategoria.value) params.set('categoria', filtroCategoria.value);
+    params.set('incluirOcultos', 'true');
     params.set('page', String(paginaActual));
     params.set('limit', String(porPagina));
 
@@ -150,11 +151,14 @@
 
       var precioHtml = typeof p.precio === 'number' ? formatPEN(p.precio) : '<span class="muted">Consultar</span>';
 
-      var estadoHtml = p.disponible
-        ? '<span class="badge badge--ok">Disponible</span>'
-        : '<span class="badge badge--off">Agotado</span>';
+      var estadoHtml = p.oculto
+        ? '<span class="badge badge--off">Oculto</span>'
+        : p.disponible
+          ? '<span class="badge badge--ok">Disponible</span>'
+          : '<span class="badge badge--off">Agotado</span>';
 
       var etiquetas = '';
+      if (p.oculto) etiquetas += '<span class="badge badge--off">Oculto</span> ';
       if (p.destacado) etiquetas += '<span class="badge badge--info">Destacado</span> ';
       if (p.nuevo) etiquetas += '<span class="badge badge--new">Nuevo</span>';
 
@@ -198,6 +202,7 @@
       document.getElementById('fDisponible').checked = !!producto.disponible;
       document.getElementById('fDestacado').checked = !!producto.destacado;
       document.getElementById('fNuevo').checked = !!producto.nuevo;
+      document.getElementById('fOculto').checked = !!producto.oculto;
       if (producto.imagen) {
         document.getElementById('previewImagen').innerHTML = '<img src="' + producto.imagen + '" alt="">';
       }
@@ -303,7 +308,7 @@
       if (!tieneArchivos) {
         // Sin archivos nuevos, envío clásico sin subida directa
         var formData0 = new FormData(form);
-        ['disponible', 'destacado', 'nuevo', 'eliminarImagen'].forEach(function (campo) {
+        ['disponible', 'destacado', 'nuevo', 'oculto', 'eliminarImagen'].forEach(function (campo) {
           var checkbox = form.querySelector('[name="' + campo + '"]');
           if (checkbox && !checkbox.checked) formData0.set(campo, 'false');
         });
@@ -339,7 +344,7 @@
           if (imagenUrlDirecta) formDataDirect.set('imagenUrl', imagenUrlDirecta);
           // Asegura que imagenesUrl refleje la galería actualizada
           formDataDirect.set('imagenesUrl', JSON.stringify(galeria));
-          ['disponible', 'destacado', 'nuevo', 'eliminarImagen'].forEach(function (campo) {
+          ['disponible', 'destacado', 'nuevo', 'oculto', 'eliminarImagen'].forEach(function (campo) {
             var checkbox = form.querySelector('[name="' + campo + '"]');
             if (checkbox && !checkbox.checked) formDataDirect.set(campo, 'false');
           });
@@ -357,7 +362,7 @@
             formData.delete('imagenes');
             galeriaComprimida.forEach(function (f) { formData.append('imagenes', f, f.name); });
           }
-          ['disponible', 'destacado', 'nuevo', 'eliminarImagen'].forEach(function (campo) {
+          ['disponible', 'destacado', 'nuevo', 'oculto', 'eliminarImagen'].forEach(function (campo) {
             var checkbox = form.querySelector('[name="' + campo + '"]');
             if (checkbox && !checkbox.checked) formData.set(campo, 'false');
           });
