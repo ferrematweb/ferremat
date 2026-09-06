@@ -2001,6 +2001,11 @@
         transform: translateY(-50%);
         z-index: 20;
       }
+      .header--search-open .header__nav {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
     }
 
     .header__search-icon {

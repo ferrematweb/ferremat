@@ -558,12 +558,16 @@
     function abrirBusquedaHeader() {
       btn.hidden = true;
       headerSearch.hidden = false;
+      var hdr = document.getElementById('header');
+      if (hdr) hdr.classList.add('header--search-open');
       headerInput.focus();
     }
     function cerrarBusquedaHeader() {
       var habiaBusqueda = headerInput.value.trim() !== '';
       headerSearch.hidden = true;
       btn.hidden = false;
+      var hdr2 = document.getElementById('header');
+      if (hdr2) hdr2.classList.remove('header--search-open');
       headerInput.value = '';
       // Si había búsqueda, limpia el filtro del catálogo
       if (habiaBusqueda) {
