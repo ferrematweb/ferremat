@@ -211,6 +211,12 @@
 
     if (filtered.length === 0) {
       emptyEl.hidden = false;
+      // Mensaje personalizado cuando la búsqueda no encuentra nada
+      if (filters.search && filters.search.trim() !== '') {
+        emptyEl.innerHTML = '<p>¡Próximamente lo incorporaremos!</p><p style="font-size:13px;color:var(--text-muted);margin-top:6px;">No encontramos "' + escapeHtml(filters.search.trim()) + '". Prueba con otro nombre o código.</p>';
+      } else {
+        emptyEl.innerHTML = '<p>No encontramos productos con esos filtros. Prueba con otra búsqueda o categoría.</p>';
+      }
       loadMoreBtn.hidden = true;
       resultsCountEl.textContent = '0 productos encontrados';
       return;
@@ -542,15 +548,66 @@
 
   function initHeaderSearch() {
     var btn = document.getElementById('headerSearchBtn');
-    var searchInput = document.getElementById('catalogSearch');
+    var wrap = document.getElementById('headerSearchWrap');
+    var headerSearch = document.getElementById('headerSearch');
+    var headerInput = document.getElementById('headerSearchInput');
+    var headerClose = document.getElementById('headerSearchClose');
+    var catalogInput = document.getElementById('catalogSearch');
     var productosSection = document.getElementById('productos');
-    if (!btn || !searchInput || !productosSection) return;
-    btn.addEventListener('click', function () {
-      var header = document.getElementById('header');
-      var offset = header ? header.offsetHeight : 0;
-      var top = productosSection.getBoundingClientRect().top + window.scrollY - offset - 10;
-      window.scrollTo({ top: top, behavior: 'smooth' });
-      setTimeout(function () { searchInput.focus(); }, 500);
+    if (!btn || !headerSearch || !headerInput) return;
+
+    function abrirBusquedaHeader() {
+      btn.hidden = true;
+      headerSearch.hidden = false;
+      headerInput.focus();
+    }
+    function cerrarBusquedaHeader() {
+      headerSearch.hidden = true;
+      btn.hidden = false;
+      headerInput.value = '';
+    }
+    function filtrarDesdeHeader() {
+      var q = headerInput.value.trim();
+      // Sincroniza con el buscador del catálogo
+      if (catalogInput) catalogInput.value = q;
+      filters.search = q;
+      visibleCount = PAGE_SIZE;
+      renderGrid();
+      // Si no hay resultados, el empty ya muestra el mensaje personalizado
+      if (productosSection) {
+        var header = document.getElementById('header');
+        var offset = header ? header.offsetHeight : 0;
+        var top = productosSection.getBoundingClientRect().top + window.scrollY - offset - 10;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      }
+    }
+
+    btn.addEventListener('click', abrirBusquedaHeader);
+    headerClose.addEventListener('click', cerrarBusquedaHeader);
+    // Cerrar con Escape
+    headerInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') cerrarBusquedaHeader();
+    });
+    // Filtrar al escribir (debounce) y al dar Enter
+    var debounce = null;
+    headerInput.addEventListener('input', function () {
+      clearTimeout(debounce);
+      debounce = setTimeout(filtrarDesdeHeader, 250);
+    });
+    headerInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        filtrarDesdeHeader();
+      }
+    });
+    // Clic fuera cierra
+    document.addEventListener('click', function (e) {
+      if (!wrap.contains(e.target) && !headerSearch.hidden) {
+        // No cerrar si el clic fue dentro del catálogo (filtra), solo si fue fuera del header
+        if (!e.target.closest('#headerSearch') && !e.target.closest('#headerSearchBtn')) {
+          // Mantener abierto mientras escribe; solo cierra con X o Escape
+        }
+      }
     });
   }
 
