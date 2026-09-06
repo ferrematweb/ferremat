@@ -14,7 +14,7 @@ const path = require('path');
 const prisma = require('../src/config/db');
 const { resolveImageUrl } = require('../src/utils/urls');
 
-const SITE_URL = process.env.SEO_SITE_URL || 'https://ferrematcix.netlify.app';
+const SITE_URL = process.env.SEO_SITE_URL || 'https://ferremat.pages.dev';
 const INDEX_PATH = path.join(__dirname, '../../frontend/index.html');
 
 const KEYWORDS_BASE = [

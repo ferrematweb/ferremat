@@ -31,4 +31,4 @@ User-agent: Bingbot
 Allow: /
 
 # DOMINIO SEO (cambiar por https://tudominio.com/sitemap.xml)
-Sitemap: https://ferrematcix.netlify.app/sitemap.xml
+Sitemap: https://ferremat.pages.dev/sitemap.xml
