@@ -655,7 +655,7 @@
       justify-content: center;
       background: var(--white);
       overflow: hidden;
-      padding: 8px;
+      padding: 6px;
     }
 
     .product-card__img img {
