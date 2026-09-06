@@ -2045,11 +2045,13 @@
 
     @media (max-width: 768px) {
       .header__search {
-        position: absolute;
-        top: calc(100% + 10px);
-        right: 0;
-        width: 280px;
-        z-index: 20;
+        position: fixed;
+        top: 64px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-width: none;
+        z-index: 100;
       }
       .header__search input {
         width: 100%;
