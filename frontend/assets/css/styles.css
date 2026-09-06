@@ -2001,6 +2001,14 @@
         transform: translateY(-50%);
         z-index: 20;
       }
+      /* Como el buscador ahora está fuera del header (fixed en móvil), en desktop lo re-anclamos al header */
+      .header__search {
+        position: fixed;
+        top: 14px;
+        right: 140px;
+        left: auto;
+        transform: none;
+      }
     }
 
     .header__search-icon {
