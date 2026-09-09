@@ -120,10 +120,14 @@ function buildUploader(carpeta) {
 
   const subirBufferASupabase = async function (file) {
     if (!client || !file || !file.buffer) return file;
-    const ext = MIME_TO_EXT[file.mimetype] || '.jpg';
+    let buffer = file.buffer;
+    let mimetype = file.mimetype;
+    let ext = MIME_TO_EXT[mimetype] || '.jpg';
+    const opt = await optimizarImagen(buffer);
+    if (opt) { buffer = opt.buffer; mimetype = opt.mimetype; ext = opt.ext; }
     const nombre = crypto.randomBytes(16).toString('hex') + ext;
-    const { error } = await client.storage.from(carpeta).upload(nombre, file.buffer, {
-      contentType: file.mimetype,
+    const { error } = await client.storage.from(carpeta).upload(nombre, buffer, {
+      contentType: mimetype,
       upsert: false
     });
     if (error) {
@@ -134,7 +138,7 @@ function buildUploader(carpeta) {
     const { data } = client.storage.from(carpeta).getPublicUrl(nombre);
     return {
       originalname: file.originalname,
-      mimetype: file.mimetype,
+      mimetype: mimetype,
       size: file.size,
       filename: data.publicUrl,
       path: data.publicUrl,
@@ -144,9 +148,45 @@ function buildUploader(carpeta) {
   };
 
   if (!client) {
+    // Para disco local: tras guardar, recomprime el archivo en disco con sharp (si disponible)
+    const optimizarEnDisco = async function (file) {
+      if (!sharp || !file || !file.path) return;
+      try {
+        const buf = await require('fs').promises.readFile(file.path);
+        const opt = await optimizarImagen(buf);
+        if (opt) {
+          const nuevoPath = file.path.replace(/\.[^.]+$/, opt.ext);
+          await require('fs').promises.writeFile(nuevoPath, opt.buffer);
+          if (nuevoPath !== file.path) await require('fs').promises.unlink(file.path).catch(function(){});
+          file.path = nuevoPath;
+          file.filename = require('path').basename(nuevoPath);
+          file.mimetype = opt.mimetype;
+        }
+      } catch (e) {}
+    };
     return {
-      single: _single,
-      array: _array,
+      single: function (field) {
+        const mid = _single(field);
+        return function (req, res, next) {
+          mid(req, res, async function (err) {
+            if (err) return next(err);
+            if (req.file) await optimizarEnDisco(req.file);
+            next();
+          });
+        };
+      },
+      array: function (field, max) {
+        const mid = _array(field, max);
+        return function (req, res, next) {
+          mid(req, res, async function (err) {
+            if (err) return next(err);
+            if (req.files && req.files.length) {
+              for (const f of req.files) await optimizarEnDisco(f);
+            }
+            next();
+          });
+        };
+      },
       fields: function (fieldsConfig) {
         const mid = _fields(fieldsConfig);
         return function (req, res, next) {
