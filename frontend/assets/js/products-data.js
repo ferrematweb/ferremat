@@ -84,11 +84,17 @@
     fetch(apiUrl('/api/productos')).then(function (r) {
       if (!r.ok) throw new Error('No se pudieron cargar los productos.');
       return r.json();
-    })
+    }),
+    fetch(apiUrl('/api/menu')).then(function (r) {
+      if (!r.ok) return [];
+      return r.json();
+    }).catch(function () { return []; })
   ])
     .then(function (resultados) {
       var categorias = resultados[0];
       var productos = resultados[1];
+      var menu = resultados[2];
+      global.FERREMAT_CATALOG.MENU = menu;
 
       global.FERREMAT_CATALOG.CATEGORIES = categorias
         .slice()

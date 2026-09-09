@@ -128,6 +128,7 @@ function buildUploader(carpeta) {
     const nombre = crypto.randomBytes(16).toString('hex') + ext;
     const { error } = await client.storage.from(carpeta).upload(nombre, buffer, {
       contentType: mimetype,
+      cacheControl: '31536000',
       upsert: false
     });
     if (error) {

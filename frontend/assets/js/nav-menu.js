@@ -90,6 +90,12 @@
   }
 
   function cargarMenu() {
+    if (window.FERREMAT_CATALOG && Array.isArray(window.FERREMAT_CATALOG.MENU) && window.FERREMAT_CATALOG.MENU.length) {
+      var pre = window.FERREMAT_CATALOG.MENU;
+      pintarNavDesktop(pre);
+      pintarNavMovil(pre);
+      return;
+    }
     fetch(apiUrl('/api/menu'))
       .then(function (r) {
         if (!r.ok) throw new Error('No se pudo cargar el menú.');
@@ -108,5 +114,11 @@
   document.addEventListener('DOMContentLoaded', function () {
     activarScrollYCierre();
     cargarMenu();
+  });
+  document.addEventListener('ferremat:catalog-ready', function () {
+    if (window.FERREMAT_CATALOG && Array.isArray(window.FERREMAT_CATALOG.MENU) && window.FERREMAT_CATALOG.MENU.length) {
+      pintarNavDesktop(window.FERREMAT_CATALOG.MENU);
+      pintarNavMovil(window.FERREMAT_CATALOG.MENU);
+    }
   });
 })();
