@@ -6,3 +6,10 @@
 # Redirects: el frontend usa rutas limpias; la API vive en Render, no aquí.
 # No se definen headers ni redirects de API porque el backend se sirve desde
 # el Web Service de Render (configurado en render.yaml).
+
+[[redirects]]
+  from = "/*"
+  to = "https://ferremat.pages.dev/:splat"
+  status = 301
+  force = true
+
