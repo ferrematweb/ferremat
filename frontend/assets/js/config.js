@@ -88,7 +88,7 @@
 
   function buildWhatsappUrl(numero, mensaje) {
     var numeroLimpio = (numero || '').replace(/[^0-9]/g, '');
-    return 'https://wa.me/' + numeroLimpio + '?text=' + encodeURIComponent(mensaje);
+    return 'https://api.whatsapp.com/send?phone=' + numeroLimpio + '&text=' + encodeURIComponent(mensaje);
   }
 
   global.FERREMAT_CONFIG = {
