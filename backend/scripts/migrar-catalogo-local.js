@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MIGRACIÓN COMPLETA del catálogo local (80 productos) a Supabase.
  * Lee la BD local, sube las imágenes a Supabase Storage y escribe en Supabase.
  */
@@ -10,7 +10,7 @@ const { PrismaClient } = require('@prisma/client');
 
 const LOCAL_DB_URL =
   process.env.LOCAL_DATABASE_URL ||
-  'postgresql://ferremat_user:ferremat_password_2026@localhost:5432/ferremat_db?schema=public';
+  'postgresql://usuario:password@localhost:5432/ferremat_db?schema=public';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;

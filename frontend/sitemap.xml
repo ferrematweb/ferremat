@@ -3,11 +3,13 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://ferremat.pages.dev/</loc>
+    <lastmod>2026-09-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
       <image:loc>https://ferremat.pages.dev/assets/images/logo/logo-h512.png</image:loc>
-      <image:title>FERREMAT CIX — Ferretería en Chiclayo</image:title>
+      <image:title>FERREMAT CIX - Ferreteria en Chiclayo</image:title>
+      <image:caption>Ferreteria en Chiclayo - Herramientas y materiales</image:caption>
     </image:image>
   </url>
 </urlset>

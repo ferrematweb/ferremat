@@ -24,7 +24,7 @@ const { resolveImageUrl } = require('../utils/urls');
 
 // Dominio público (mismo placeholder que en index.html/robots/sitemap).
 // DOMINIO SEO (cambiar por https://tudominio.com)
-const SITE_URL = process.env.SEO_SITE_URL || 'https://ferremat.pe';
+const SITE_URL = process.env.SEO_SITE_URL || 'https://ferremat.pages.dev';
 
 const INDEX_PATH = path.join(__dirname, '../../../frontend/index.html');
 

@@ -1,4 +1,4 @@
-const path = require('path');
+﻿const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -16,6 +16,7 @@ const uploadsRoutes = require('./routes/uploads.routes');
 const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
+app.disable('x-powered-by');
 
 // ------------------------------------------------------------
 // Configuración básica
@@ -92,7 +93,12 @@ app.use('/admin/assets', express.static(path.join(__dirname, '../../admin/public
 // ------------------------------------------------------------
 // Archivos subidos (imágenes de productos/categorías)
 // ------------------------------------------------------------
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  dotfiles: 'deny',
+  index: false,
+  maxAge: '7d',
+  setHeaders: function (res) { res.setHeader('X-Content-Type-Options', 'nosniff'); }
+}));
 
 // ------------------------------------------------------------
 // Sitio público estático (opcional, útil en desarrollo).
@@ -134,7 +140,12 @@ app.use((err, req, res, next) => {
   console.error(err);
   if (res.headersSent) return next(err);
   const status = err.status || 500;
-  res.status(status).json({ error: err.message || 'Error interno del servidor.' });
+  const isProd = process.env.NODE_ENV === 'production';
+  const mensaje = (status >= 500 && isProd)
+    ? 'Error interno del servidor.'
+    : (err.message || 'Error interno del servidor.');
+  res.status(status).json({ error: mensaje });
 });
 
 module.exports = app;
+
