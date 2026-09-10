@@ -2,6 +2,19 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
+let sharp = null;
+try { sharp = require('sharp'); } catch (e) { sharp = null; }
+
+async function optimizarImagen(buffer) {
+  if (!sharp || !buffer) return null;
+  try {
+    const out = await sharp(buffer).resize({ width: 800, height: 800, fit: 'inside', withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
+    return { buffer: out, mimetype: 'image/webp', ext: '.webp' };
+  } catch (e) {
+    console.warn('[storage] no se pudo optimizar imagen:', e.message);
+    return null;
+  }
+}
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -128,7 +141,6 @@ function buildUploader(carpeta) {
     const nombre = crypto.randomBytes(16).toString('hex') + ext;
     const { error } = await client.storage.from(carpeta).upload(nombre, buffer, {
       contentType: mimetype,
-      cacheControl: '31536000',
       upsert: false
     });
     if (error) {
