@@ -2615,13 +2615,15 @@
     .vendor-option {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      font-size: 13px;
+      gap: 10px;
+      padding: 12px;
+      font-size: 14px;
+      line-height: 1.25;
       color: var(--text-body);
       background: var(--bg-warm);
       border-radius: var(--radius-sm);
       cursor: pointer;
+      min-width: 0;
     }
 
     .vendor-option input {
@@ -2629,11 +2631,17 @@
     }
 
     .vendor-option__foto {
-      width: 48px;
-      height: 48px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       object-fit: cover;
+      object-position: center top;
       flex-shrink: 0;
+    }
+
+    .vendor-option span:last-child {
+      min-width: 0;
+      overflow-wrap: break-word;
     }
 
     .vendor-option__foto--placeholder {
