@@ -158,8 +158,10 @@
     CONFIG.VENDEDORES.forEach(function (v) {
       var label = document.createElement('label');
       label.className = 'vendor-option';
+      var fotoHtml = v.foto ? '<img src="' + v.foto + '" alt="' + escapeHtml(v.nombre) + '" class="vendor-option__foto" loading="lazy" width="48" height="48">' : '<span class="vendor-option__foto vendor-option__foto--placeholder">' + escapeHtml(v.nombre.charAt(0)) + '</span>';
       label.innerHTML =
         '<input type="radio" name="vendedor" value="' + v.id + '">' +
+        fotoHtml +
         '<span>' + escapeHtml(v.nombre) + '</span>';
       var input = label.querySelector('input');
       input.addEventListener('change', function () {

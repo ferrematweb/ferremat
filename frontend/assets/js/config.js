@@ -60,13 +60,13 @@
   // Si "whatsapp" queda vacío, el sistema avisa que falta configurar.
   // ------------------------------------------------------------
   var VENDEDORES = [
-    { id: 'v1', nombre: 'Naguely Garcia', whatsapp: '51913871385' },
-    { id: 'v2', nombre: 'Roxana Marquez', whatsapp: '51913389284' },
-    { id: 'v3', nombre: 'Eladio Marquez', whatsapp: '51967413293' },
-    { id: 'v4', nombre: 'Brayan Nazaret', whatsapp: '51992921359' },
-    { id: 'v5', nombre: 'Kevin Enriquez', whatsapp: '51954205990' },
-    { id: 'v6', nombre: 'Luis Zapata', whatsapp: '51979323084' },
-    { id: 'v7', nombre: 'Yoniel Quintero', whatsapp: '51959799313' },
+    { id: 'v1', nombre: 'Naguely Garcia', whatsapp: '51913871385', foto: 'assets/images/vendedores/v1.webp' },
+    { id: 'v2', nombre: 'Roxana Marquez', whatsapp: '51913389284', foto: 'assets/images/vendedores/v2.webp' },
+    { id: 'v3', nombre: 'Eladio Marquez', whatsapp: '51967413293', foto: 'assets/images/vendedores/v3.webp' },
+    { id: 'v4', nombre: 'Brayan Nazaret', whatsapp: '51992921359', foto: 'assets/images/vendedores/v4.webp' },
+    { id: 'v5', nombre: 'Kevin Enriquez', whatsapp: '51954205990', foto: 'assets/images/vendedores/v5.webp' },
+    { id: 'v6', nombre: 'Luis Zapata', whatsapp: '51979323084', foto: 'assets/images/vendedores/v6.webp' },
+    { id: 'v7', nombre: 'Yoniel Quintero', whatsapp: '51959799313', foto: 'assets/images/vendedores/v7.webp' },
     { id: 'v8', nombre: 'Richard Arboleda', whatsapp: '51974136493' }
   ];
 
